@@ -1,0 +1,36 @@
+.switch-button {
+    -fx-background-color: #ccc; /* Color apagado */
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-padding: 2px;
+    -fx-cursor: hand;
+}
+
+.switch-button:selected {
+    -fx-background-color: #4CAF50; /* Color encendido */
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-padding: 2px;
+}
+
+.switch-button .text {
+    -fx-fill: white; /* Color del texto */
+    -fx-font-weight: bold;
+}
+
+/* Estilo del círculo (thumb) */
+.switch-button .toggle-button {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-padding: 0;
+    -fx-pref-width: 24px;
+    -fx-pref-height: 24px;
+    -fx-alignment: center-left; /* Alineación inicial */
+    -fx-translate-x: 0; /* Posición inicial */
+}
+
+.switch-button:selected .toggle-button {
+    -fx-background-color: white;
+    -fx-alignment: center-right; /* Alineación al seleccionar */
+    -fx-translate-x: 28px; /* Mover a la derecha */
+}

@@ -2,6 +2,7 @@ package com.mutualidad.modulo_credito.Repository;
 
 import com.mutualidad.modulo_credito.Models.ModelEmpresa;
 import com.mutualidad.modulo_credito.Models.ModelSocio;
+import com.mutualidad.modulo_credito.Models.ModelSolicitud;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -11,9 +12,12 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SocioRepository extends JpaRepository<ModelSocio, Integer> {
+
+    ModelSocio  findByNumSocio(int numSocio);
 
     @Procedure(name = "Socio.pa_BuscarSocioXNumeroParaCredito")
     HashMap pa_BuscarSocioXNumeroParaCredito(int NumSocio, String NombreFormateado, int NumSocioEncontrado,
@@ -42,6 +46,19 @@ public interface SocioRepository extends JpaRepository<ModelSocio, Integer> {
 
     @Query(value = "SELECT * FROM CAT_ACREDITACIONES", nativeQuery = true)
     List<Object[]> traerAcreditaciones();
+
+    @Query(value = " SELECT * FROM VW_SOCIO_INFO WHERE NUM_SOCIO = :numSocio ", nativeQuery = true)
+    Object[] traerInfoSocio(@Param("numSocio") int numSocio);
+
+
+    @Query(value = "SELECT * FROM CAT_PARENTESCO", nativeQuery = true)
+    List<Object[]> traerParentescos();
+
+    @Query(value = "SELECT * FROM CAT_TIPO_RIESGO", nativeQuery = true)
+    List<Object[]> traerTiposRiesgo();
+
+    @Query(value = "SELECT (PRIMER_NOM + ' ' + SEGUNDO_NOM + ' ' + APELLIDO_P + ' ' + APELLIDO_M) AS NOMBRE FROM SOCIO WHERE NUM_SOCIO = :numSocio", nativeQuery = true)
+    String traerNombreSocio(@Param("numSocio") int numSocio);
 
     @Query(
             value =

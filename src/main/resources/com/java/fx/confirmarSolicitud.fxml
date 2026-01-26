@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<Pane prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.ConfirmarSolicitudController">
+   <children>
+      <Label layoutX="34.0" layoutY="28.0" prefHeight="35.0" prefWidth="308.0" text="Confirmación de Solicitud" textFill="#39577c">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="34.0" layoutY="85.0" text="Número de socio:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtNumSocio" layoutX="195.0" layoutY="79.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="355.0" layoutY="85.0" text="Nombre de Socio:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtNomSocio" layoutX="517.0" layoutY="79.0" prefHeight="39.0" prefWidth="459.0" />
+      <Label layoutX="33.0" layoutY="143.0" text="Monto Solicitado:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtMontoSol" layoutX="195.0" layoutY="137.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="355.0" layoutY="143.0" text="Tasa:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtTasa" layoutX="410.0" layoutY="137.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="568.0" layoutY="143.0" text="Mora:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtMora" layoutX="632.0" layoutY="137.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="790.0" layoutY="143.0" text="IVA:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtIva" layoutX="836.0" layoutY="137.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="49.0" layoutY="198.0" text="Tipo de Crédito:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtTipoCred" layoutX="195.0" layoutY="192.0" prefHeight="39.0" prefWidth="358.0" />
+      <CheckBox fx:id="chkDesembolso" layoutX="49.0" layoutY="261.0" mnemonicParsing="false" text="Desembolso En Efectivo" textFill="#39577c">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </CheckBox>
+      <TextArea fx:id="taDictamen" layoutX="51.0" layoutY="337.0" prefHeight="99.0" prefWidth="904.0" wrapText="true" />
+      <Label layoutX="51.0" layoutY="309.0" text="Dictamen:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnConfirmar" layoutX="55.0" layoutY="490.0" mnemonicParsing="false" onAction="#guardarSolicitud" prefHeight="39.0" prefWidth="210.0" style="-fx-background-color: #185754;" text="Confirmar Solicitud" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor></Button>
+      <Button fx:id="btnPagare" layoutX="442.0" layoutY="490.0" mnemonicParsing="false" onAction="#mostrarPagare" prefHeight="39.0" prefWidth="159.0" style="-fx-background-color: #5fde64;" text="Pagaré" visible="false">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <graphic>
+            <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+               <image>
+                  <Image url="@/assets/images/icono-pagare.png" />
+               </image>
+            </ImageView>
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+
+      <Button fx:id="btnPlan" layoutX="613.0" layoutY="489.0" mnemonicParsing="false" onAction="#mostrarTablaAmortizacion" prefHeight="39.0" prefWidth="172.0" style="-fx-background-color: #e6c535;" text="Plan de Pagos" visible="false">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <graphic>
+            <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+               <image>
+                  <Image url="@/assets/images/icono-planPagos.png" />
+               </image>
+            </ImageView>
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+
+      <Button fx:id="btnContrarto" layoutX="794.0" layoutY="488.0" mnemonicParsing="false" onAction="#mostrarContrato" prefHeight="39.0" prefWidth="165.0" style="-fx-background-color: #ff8a05;" text="Contrato" visible="false">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <graphic>
+            <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+               <image>
+                  <Image url="@/assets/images/icono-contrato.png" />
+               </image>
+            </ImageView>
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+
+      <Label layoutX="568.0" layoutY="200.0" text="Monto Autorizado:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtMontoAut" layoutX="737.0" layoutY="194.0" onAction="#settearMontoAutorizado" prefHeight="39.0" prefWidth="241.0" />
+      <Label layoutX="356.0" layoutY="32.0" opacity="0.45" text="Empresa Emisora:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblEmpresaEmisora" layoutX="518.0" layoutY="32.0" opacity="0.45" prefHeight="27.0" prefWidth="459.0">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnLimpiarAut" layoutX="893.0" layoutY="236.0" mnemonicParsing="false" onAction="#limpiarAut" prefHeight="4.0" prefWidth="86.0" style="-fx-background-color: #39577c;" text="Limpiar" textFill="WHITE" visible="false">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Label layoutX="351.0" layoutY="261.0" text="Plazo:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtPlazo" layoutX="410.0" layoutY="255.0" prefHeight="39.0" prefWidth="141.0" />
+      <Label layoutX="562.0" layoutY="261.0" text="(Meses)">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+   </children>
+</Pane>

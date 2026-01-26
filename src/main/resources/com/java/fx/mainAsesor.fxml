@@ -65,7 +65,7 @@
                               <Cursor fx:constant="HAND" />
                            </cursor>
                         </Label>
-                        <Label fx:id="lblRegistros" alignment="CENTER" layoutY="95.0" prefHeight="27.0" prefWidth="219.0" text="REGISTROS" textFill="WHITE" underline="true">
+                        <Label fx:id="lblRegistros" alignment="CENTER" layoutY="95.0" onMouseClicked="#registrosPendientes" prefHeight="27.0" prefWidth="219.0" text="REGISTROS" textFill="WHITE" underline="true">
                            <font>
                               <Font name="System Bold" size="17.0" />
                            </font>

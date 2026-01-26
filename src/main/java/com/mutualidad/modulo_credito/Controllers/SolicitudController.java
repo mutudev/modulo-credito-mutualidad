@@ -14,14 +14,16 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.jfree.data.json.impl.JSONArray;
+import org.jfree.data.json.impl.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 
 @Component
@@ -39,14 +41,14 @@ public class SolicitudController  implements Initializable {
     @FXML
     private TextField txtNumSocio, txtNombre, txtAhorros, txtPSmut, txtPSngu, txtTotalAhorros,
             txtGradualidad, txtEmpresa, txtMontoSoli, txtMora, txtIva, txtNumAval, txtNomAval, txtEmpresa2,
-            txtParentescoAval, txtDirecPropiedad, txtPropietario, txtNumSocio3, txtNomSocio3,
+             txtDirecPropiedad, txtPropietario, txtNumSocio3, txtNomSocio3,
             txtAhorrosConf, txtMontoConf, txtRiesgoConf, txtEmisorConf, txtGradConf,
             txtTasaOrdConf, txtMoraConf, txtTasaIvaConf, txtBonifConf, txtTipoConf,
             txtAvalConf, txtTipoRiesgoConf, txtPlazoConf;
 
     @FXML
     private ComboBox cmbTipo, cmbTasa, cmbGradualidad, cmbPlazo, cmbBonif, cmbOpcionAval, cmbAvalAplica,
-            cmbIdAval, cmbAcreditacion, cmbGravamen;
+            cmbIdAval, cmbAcreditacion, cmbGravamen, cmbParentescoAval;
 
     @FXML
     private Tab tabDatosGenerales, tabDatosCredito, tabAvales, tabConfirmar, tabPropiedad;
@@ -86,7 +88,6 @@ public class SolicitudController  implements Initializable {
     private BigDecimal ahorrosAntesPs, psMut, psNgu, ahorrosTotales, gradualidad, montoSolicitado;
     private boolean sobrePrestamo = false;
     public String[] opciones = {"Sí", "No"};
-    public String[] opcionesAvalAplica = {"AVAL <= $5,000.00", "AVAL > $5,000.00 o ≤ $10,000.00", "AVAL CON PROPIEDAD > $10,000.00"};
 
     private boolean isRiesgo = false;
 
@@ -118,9 +119,7 @@ public class SolicitudController  implements Initializable {
             alert.setTitle("ERROR AL INTENTAR BUSCAR AL SOCIO");
             alert.setHeaderText(result.get("NombreFormateado").toString().toUpperCase());
             alert.setContentText(
-                        "ERROR EN LA LÍNEA: "
-                                + result.get("NumSocioEncontrado")
-                                + " DEL PROCEDIMIENTO ALMACENADO.");
+                    "ERROR EN LA LÍNEA: " + result.get("NumSocioEncontrado") + " DEL PROCEDIMIENTO ALMACENADO.");
             alert.showAndWait();
 
         }
@@ -202,7 +201,11 @@ public class SolicitudController  implements Initializable {
 
     @FXML
     private void continuarAgregadoAvales() {
-        tabPane.getSelectionModel().clearAndSelect(2);
+        if (!isRiesgo) {
+            tabPane.getSelectionModel().clearAndSelect(4);
+        } else {
+            tabPane.getSelectionModel().clearAndSelect(2);
+        }
     }
 
     @FXML
@@ -217,7 +220,12 @@ public class SolicitudController  implements Initializable {
 
     @FXML
     private void regresarAgregadoAvales() {
-        tabPane.getSelectionModel().clearAndSelect(2);
+        if (!isRiesgo) {
+            tabPane.getSelectionModel().clearAndSelect(1);
+        } else {
+            tabPane.getSelectionModel().clearAndSelect(2);
+
+        }
     }
 
     private boolean cambiandoTab = false;
@@ -335,7 +343,7 @@ public class SolicitudController  implements Initializable {
                     montoSolicitado.doubleValue() - ahorrosTotales.doubleValue()));
 
         }else{
-            txtRiesgoConf.setText("N/A");
+            txtRiesgoConf.setText(formatoMXN.format(0));
         }
         //txtRiesgoConf.setText(txtMontoSoli.getText());
 
@@ -529,6 +537,16 @@ public class SolicitudController  implements Initializable {
 
         cmbPlazo.getSelectionModel().select(1);
 
+        List<Object[]> tiposRiesgo;
+        tiposRiesgo = servicio.traerTiposRiesgo();
+        cmbAvalAplica.getItems().clear();
+        for (Object[] fila : tiposRiesgo) {
+            String tipoRiesg = fila[1].toString();
+            cmbAvalAplica.getItems().add(tipoRiesg);
+        }
+        cmbAvalAplica.getSelectionModel().select(1);
+
+
         List<Object[]> gradualidades;
 
         if (numeroSocio <= 8542) {
@@ -544,6 +562,7 @@ public class SolicitudController  implements Initializable {
         }
 
         cmbGradualidad.getSelectionModel().selectFirst();
+
         List<Object[]> idsAval;
         if(isRiesgo){
              idsAval = servicio.traerIdsAvales() ;
@@ -566,6 +585,18 @@ public class SolicitudController  implements Initializable {
             cmbAcreditacion.getSelectionModel().selectFirst();
         }
 
+        List<Object[]> parentescos;
+        if(isRiesgo){
+            parentescos = servicio.traerParentescos() ;
+            cmbParentescoAval.getItems().clear();
+            for (Object[] fila : parentescos) {
+                String parentesco = fila[1].toString();
+                cmbParentescoAval.getItems().add(parentesco);
+            }
+            cmbParentescoAval.getSelectionModel().selectFirst();
+        }
+
+
         if (numeroSocio <= 8542 && isRiesgo) {
             txtEmpresa2.setText(servicio.traerEmpresa("0002").getNombre());
         } else if (numeroSocio <= 8542 && !isRiesgo) {
@@ -585,7 +616,7 @@ public class SolicitudController  implements Initializable {
 
 
         lblTasa.setVisible(true);
-        lblGrad2.setVisible(true);
+
         lblPlazo.setVisible(true);
         lblMora.setVisible(true);
         lblIva.setVisible(true);
@@ -597,7 +628,19 @@ public class SolicitudController  implements Initializable {
         txtEmpresa2.setVisible(true);
         cmbTipo.setVisible(true);
         cmbTasa.setVisible(true);
-        cmbGradualidad.setVisible(true);
+
+        if (isRiesgo) {
+            cmbGradualidad.setVisible(true);
+            lblGrad2.setVisible(true);
+        } else {
+            cmbGradualidad.setVisible(true);
+            lblGrad2.setVisible(true);
+            cmbGradualidad.getItems().add(0);
+            cmbGradualidad.getSelectionModel().selectLast();
+            cmbGradualidad.setDisable(true);
+        }
+
+
         cmbPlazo.setVisible(true);
         cmbBonif.setVisible(true);
     }
@@ -653,7 +696,7 @@ public class SolicitudController  implements Initializable {
 
         if(cmbOpcionAval.getSelectionModel().getSelectedIndex() == 1){
 
-            if(txtNumSocio.getText().isEmpty() || txtParentescoAval.getText().isEmpty()){
+            if(txtNumSocio.getText().isEmpty() ){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("ERROR AL INTENTAR AGREGAR AL AVAL");
                 alert.setHeaderText("ERROR AL INTENTAR AGREGAR AL AVAL");
@@ -666,7 +709,7 @@ public class SolicitudController  implements Initializable {
             numeroAval = "N/A";
             ahorro = "N/A";
         }else{
-            if(txtNumSocio.getText().isEmpty() || txtParentescoAval.getText().isEmpty() ||
+            if(txtNumSocio.getText().isEmpty() ||
                     txtNumAval.getText().isEmpty() ){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("ERROR AL INTENTAR AGREGAR AL AVAL");
@@ -686,7 +729,7 @@ public class SolicitudController  implements Initializable {
             nombreAval = result.get("NombreFormateado").toString().toUpperCase();
             numeroAval = txtNumAval.getText().toString();
         }
-        String parentesco  = txtParentescoAval.getText().toUpperCase();
+        String parentesco  = cmbParentescoAval.getSelectionModel().getSelectedItem().toString().toUpperCase();
         String identificacion = cmbIdAval.getValue().toString();
         Map<String, String> fila = new HashMap<>();
         fila.put("numSocio", numeroAval);
@@ -701,7 +744,6 @@ public class SolicitudController  implements Initializable {
         lblError3.setVisible(false);
         txtNomAval.setEditable(true);
         txtNumAval.setEditable(true);
-        txtParentescoAval.setText("");
 
 
 
@@ -724,7 +766,6 @@ public class SolicitudController  implements Initializable {
     private void limpiarDatosAval() {
         txtNumAval.setText("");
         txtNomAval.setText("");
-        txtParentescoAval.setText("");
 
         lblError3.setVisible(false);
         txtNomAval.setEditable(true);
@@ -822,7 +863,8 @@ public class SolicitudController  implements Initializable {
         cmbBonif.getItems().addAll(opciones);
         cmbOpcionAval.getItems().addAll(opciones);
         cmbGravamen.getItems().addAll(opciones);
-        cmbAvalAplica.getItems().addAll(opcionesAvalAplica);
+
+
 
         cmbAvalAplica.getSelectionModel().selectFirst();
         cmbBonif.getSelectionModel().selectFirst();
@@ -830,23 +872,11 @@ public class SolicitudController  implements Initializable {
         cmbGravamen.getSelectionModel().selectFirst();
 
 
-        txtParentescoAval.setTextFormatter(
-                new TextFormatter<>(
-                        change -> {
-                            change.setText(change.getText().toUpperCase());
-                            if (change.getText().matches("[0-9]")) {
-                                change.setText("");
-                            }
-                            return change;
-                        }));
 
         txtDirecPropiedad.setTextFormatter(
                 new TextFormatter<>(
                         change -> {
                             change.setText(change.getText().toUpperCase());
-                            if (change.getText().matches("[0-9]")) {
-                                change.setText("");
-                            }
                             return change;
                         }));
 
@@ -860,15 +890,7 @@ public class SolicitudController  implements Initializable {
                             return change;
                         }));
 
-        txtParentescoAval.setTextFormatter(
-                new TextFormatter<>(
-                        change -> {
-                            change.setText(change.getText().toUpperCase());
-                            if (change.getText().matches("[0-9]")) {
-                                change.setText("");
-                            }
-                            return change;
-                        }));
+
 
         txtNomAval.setTextFormatter(
                 new TextFormatter<>(
@@ -988,6 +1010,145 @@ public class SolicitudController  implements Initializable {
     @FXML
     private void guardarSolicitud() {
 
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("GUARDADO DE SOLICITUD");
+        alert.setHeaderText("¿ESTÁ SEGURO QUE DESEA PROCESAR ESTA SOLICITUD?");
+        alert.setContentText("EN CASO DE QUE SÍ, PRESIONE ACEPTAR, EN CASO CONTRARIO PRESIONE CANCELAR");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isEmpty() || result.get() == ButtonType.CANCEL) {
+            return;
+        }
+
+        JSONArray datosAval = new JSONArray();
+        JSONArray datosPropietario = new JSONArray();
+
+        String datosAvalEnviar = "";
+        String datosPropietarioEnviar = "";
+
+        int esDeRiesgo = isRiesgo ? 1 : 0;
+
+        String asesor = LoginController.usuarioLoggeado;
+        int numSocio = Integer.parseInt(txtNumSocio.getText());
+        String tipoCred = cmbTipo.getSelectionModel().getSelectedItem().toString();
+        String empresa = txtEmpresa2.getText();
+        int plazo = Integer.parseInt(cmbPlazo.getSelectionModel().getSelectedItem().toString());
+
+        BigDecimal ahorro = BigDecimal.valueOf(parseMoneda(txtTotalAhorros.getText()));
+        BigDecimal tasa = BigDecimal.valueOf(parsePorcentaje(cmbTasa.getSelectionModel().getSelectedItem().toString()));
+        BigDecimal mora = BigDecimal.valueOf(parsePorcentaje(txtMora.getText()));
+        BigDecimal iva = BigDecimal.valueOf(parsePorcentaje(txtIva.getText()));
+        BigDecimal gradualidad = BigDecimal.valueOf(0);
+
+        if (isRiesgo) {
+            gradualidad = BigDecimal.valueOf(
+                    Double.parseDouble(cmbGradualidad.getSelectionModel().getSelectedItem().toString()));
+        }
+
+
+        BigDecimal montoRiesgo = BigDecimal.valueOf(parseMoneda(txtRiesgoConf.getText()));
+
+        String bonifAplica = cmbBonif.getSelectionModel().getSelectedItem().toString();
+        String tipoRiesgo = isRiesgo ? cmbAvalAplica.getSelectionModel().getSelectedItem().toString() : "";
+
+        String direc = txtDirecPropiedad.getText();
+        boolean gravamen = "Sí".equals(cmbGravamen.getSelectionModel().getSelectedItem().toString());
+
+        String acreditacion = isRiesgo
+                ? cmbAcreditacion.getSelectionModel().getSelectedItem().toString()
+                : "";
+
+        if (isRiesgo) {
+
+            for (int i = 0; i < tblAvales.getItems().size(); i++) {
+                JSONObject obj = new JSONObject();
+                obj.put("numero_socio", colNumSocio.getCellData(i));
+                obj.put("nombre", colNombre.getCellData(i));
+                obj.put("parentesco", colParentesco.getCellData(i));
+                obj.put("identificacion", colIdentificacion.getCellData(i));
+                datosAval.add(obj);
+            }
+
+            for (int i = 0; i < tblPropietarios.getItems().size(); i++) {
+                JSONObject obj = new JSONObject();
+                obj.put("nombre", colPropietario.getCellData(i));
+                datosPropietario.add(obj);
+            }
+
+            datosAvalEnviar = datosAval.toJSONString();
+            datosPropietarioEnviar = datosPropietario.toJSONString();
+        } else {
+            datosAvalEnviar = datosAval.toJSONString();
+            datosPropietarioEnviar = datosPropietario.toJSONString();
+        }
+
+
+
+
+        String res = servicio.guardarSolicitud(
+                asesor,
+                numSocio,
+                tipoCred,
+                empresa,
+                montoSolicitado,
+                plazo,
+                ahorro,
+                tasa,
+                mora,
+                iva,
+                esDeRiesgo,
+                gradualidad,
+                montoRiesgo,
+                bonifAplica,
+                tipoRiesgo,
+                datosAvalEnviar,
+                datosPropietarioEnviar,
+                direc,
+                gravamen,
+                acreditacion,
+                ""
+        );
+
+        alert = new Alert(res.equals("CORRECTO")
+                ? Alert.AlertType.INFORMATION
+                : Alert.AlertType.ERROR);
+
+        alert.setTitle(res.equals("CORRECTO") ? "GUARDADO CORRECTO" : "ERROR EN EL GUARDADO");
+        alert.setHeaderText(res.equals("CORRECTO")
+                ? "SOLICITUD GUARDADA"
+                : "ERROR AL GUARDAR LA SOLICITUD");
+        alert.setContentText(res.equals("CORRECTO")
+                ? "SOLICITUD DEL SOCIO: " + numSocio + " GUARDADA CORRECTAMENTE."
+                : res.toUpperCase());
+
+        alert.showAndWait();
+
+        tabPane.getSelectionModel().clearAndSelect(0);
+        limpiarDatosAval();
+        limpiarDatos();
+        limpiarDatosCredito();
     }
+
+    private double parseMoneda(String moneda) {
+        try {
+            Number numero = formatoMXN.parse(moneda);
+            return numero.doubleValue();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private double parsePorcentaje(String porcentaje) {
+        try {
+            Number numero = formatoPorcentaje.parse(porcentaje);
+            return numero.doubleValue();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+
 
 }

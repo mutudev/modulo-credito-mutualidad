@@ -8,7 +8,7 @@
 
 <AnchorPane prefHeight="525.0" prefWidth="991.0" style="-fx-background-color: #ffffff;" stylesheets="@/assets/css/estilos.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.LoginController">
     <children>
-        <Button fx:id="btnIngresar" defaultButton="true" focusTraversable="false" layoutX="530.0" layoutY="423.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="173.0" onAction="#validarLogin" style="-fx-background-color: #39577C;" styleClass="boton" text="INICIAR SESIÓN" textFill="WHITE">
+        <Button fx:id="btnIngresar" defaultButton="true" focusTraversable="false" layoutX="530.0" layoutY="423.0" mnemonicParsing="false" onAction="#validarLogin" prefHeight="50.0" prefWidth="173.0" style="-fx-background-color: #39577C;" styleClass="boton" text="INICIAR SESIÓN" textFill="WHITE">
             <font>
                 <Font name="System Bold" size="18.0" />
             </font>
@@ -22,7 +22,7 @@
                     </font>
                 </Tooltip>
             </tooltip></Button>
-        <Button fx:id="btnCancelar" cacheShape="false" focusTraversable="false" layoutX="743.0" layoutY="423.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="173.0" onAction="#cerrarConBoton" style="-fx-background-color: #D82929;" styleClass="boton" text="CANCELAR" textFill="WHITE">
+        <Button fx:id="btnCancelar" cacheShape="false" focusTraversable="false" layoutX="743.0" layoutY="423.0" mnemonicParsing="false" onAction="#cerrarConBoton" prefHeight="50.0" prefWidth="173.0" style="-fx-background-color: #D82929;" styleClass="boton" text="CANCELAR" textFill="WHITE">
             <cursor>
                 <Cursor fx:constant="HAND" />
             </cursor>
@@ -82,5 +82,6 @@
                 <Font size="12.0" />
             </font>
         </Label>
+      <Button fx:id="btnEjemplo" layoutX="418.0" layoutY="384.0" mnemonicParsing="false" onAction="#prueba" text="Button" />
     </children>
 </AnchorPane>

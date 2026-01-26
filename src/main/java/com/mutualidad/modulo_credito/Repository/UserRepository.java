@@ -34,4 +34,21 @@ public interface UserRepository extends JpaRepository<ModelUsuario, Integer> {
   String traerAsesor(
           @Param("usuario") String usuario
   );
+
+  @Query(
+          value = "SELECT c.ID, u.USUARIO " +
+                  "FROM CAJA c " +
+                  "INNER JOIN USUARIO u ON u.ID = c.USUARIO_ID " +
+                  "WHERE c.ESTADO = :estado " +
+                  "AND c.EMPRESA = :empresa " +
+                  "AND FR = CAST(GETDATE() AS DATE) " +
+                  "AND TURNO = :turno",
+          nativeQuery = true
+  )
+  List<Object[]> traerCajerosParaDesembolso(@Param("estado") int estado,  @Param("empresa") String empresa, @Param("turno") String turno);
+
+
+
+
+
 }

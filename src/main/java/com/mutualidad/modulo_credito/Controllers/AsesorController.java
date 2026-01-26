@@ -124,5 +124,17 @@ public class AsesorController implements Initializable {
         contentArea.getChildren().setAll(fxml);
     }
 
+    @FXML
+    public void registrosPendientes() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/java/fx/listadoSolicitudes.fxml")
+        );
+
+        loader.setControllerFactory(context::getBean);
+
+        Parent fxml = loader.load();
+        contentArea.getChildren().setAll(fxml);
+    }
+
 
 }

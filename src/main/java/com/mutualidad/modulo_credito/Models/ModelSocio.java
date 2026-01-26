@@ -69,7 +69,7 @@ public class ModelSocio {
 
     @Id
     @Column(name = "NUM_SOCIO")
-    private Integer NumSocio;
+    private Integer numSocio;
 
     @Column(name = "EMPRESA_COD")
     private String Empresa;
@@ -85,4 +85,10 @@ public class ModelSocio {
 
     @Column(name = "APELLIDO_M")
     private String ApellidoM;
+
+    @Column(name = "CALLE")
+    private String Calle;
+
+    @Column(name = "CRUZAMIENTO")
+    private String Cruzamiento;
 }

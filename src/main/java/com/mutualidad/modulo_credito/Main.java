@@ -37,6 +37,7 @@ public class Main extends Application {
 			FXMLLoader fxml = new FXMLLoader(getClass().getResource("/com/java/fx/login.fxml"));
 			fxml.setControllerFactory(context::getBean);
 
+
 			// Crea la escena
 			Scene scene = new Scene(fxml.load());
 
