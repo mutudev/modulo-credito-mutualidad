@@ -245,13 +245,11 @@ public class ConfirmarSolicitudController implements Initializable {
             JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
             Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
             JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
-
             JasperViewer viewer = new JasperViewer(jpRepo, false);
-
-            viewer.setAlwaysOnTop(true);
             viewer.setSize(800, 600);
+            viewer.setAlwaysOnTop(true);
             viewer.setLocationRelativeTo(null);
-            viewer.setTitle("HOJA DE AMORTIZACIÓN");
+            viewer.setTitle("PLAN DE PAGOS");
             viewer.setVisible(true);
 
         }catch (Exception e) {
@@ -282,6 +280,7 @@ public class ConfirmarSolicitudController implements Initializable {
 
             empresaRS = "NUEVA GENERACION DE UMAN, A.C.";
         }
+
         if(numAvales!=0){
             for (Object[] aval : avales) {
                 numSocioAval.add(aval[1].toString());
@@ -519,7 +518,6 @@ public class ConfirmarSolicitudController implements Initializable {
         if(!isRiesgo){
             pars.put("avalTitulo1", "");
             pars.put("nombreAval1", "");
-            pars.put("direccionAval1", "");
             pars.put("firmaAval1", "");
             pars.put("mostrarLinea1", false);
 
@@ -544,6 +542,51 @@ public class ConfirmarSolicitudController implements Initializable {
             pars.put("mostrarLinea5", false);
         }else{
             //Si si es de riesgo
+            //Saber cuantos avales son
+            int numAvales = servicio.traerNumAvales(idRetornado);
+            List<Object[]> avales = servicio.traerAvales(idRetornado);
+
+            int MAX_AVALES = 5;
+
+            for (int i = 1; i <= MAX_AVALES; i++) {
+                pars.put("avalTitulo" + i, "");
+                pars.put("nombreAval" + i, "");
+                pars.put("firmaAval" + i, "");
+                pars.put("mostrarLinea" + i, false);
+            }
+
+            for (int i = 0; i < numAvales && i < MAX_AVALES; i++) {
+
+                Object[] aval = avales.get(i);
+                int idx = i + 1;
+
+                String nombreAval = aval[2] != null ? aval[2].toString() : "";
+                String direccionAvalEnviar = "";
+
+                Integer numSocio = aval[1] != null ? Integer.valueOf(aval[1].toString()) : null;
+
+                if (numSocio == null || numSocio == 0) {
+                    direccionAvalEnviar = aval[10] != null ? aval[10].toString() : "";
+                } else {
+                    List<Object[]> socioParaDireccion = servicio.traerDetalleSocio(numSocio);
+                    if (!socioParaDireccion.isEmpty()) {
+                        Object[] fila = socioParaDireccion.get(0);
+                        direccionAvalEnviar = fila[5] != null
+                                ? fila[5].toString().toUpperCase()
+                                : "";
+                    }
+                }
+
+                pars.put("avalTitulo" + idx, "Aval:");
+                pars.put(
+                        "nombreAval" + idx,
+                        "Nombre: " + nombreAval + "\nDirección: " + direccionAvalEnviar
+                );
+                pars.put("firmaAval" + idx, "FIRMA");
+                pars.put("mostrarLinea" + idx, true);
+            }
+
+
         }
 
         pars.put("elabora", "ELABORA: " + asesor.toString());

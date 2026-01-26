@@ -19,6 +19,9 @@ public interface SocioRepository extends JpaRepository<ModelSocio, Integer> {
 
     ModelSocio  findByNumSocio(int numSocio);
 
+    @Query(value = "SELECT * FROM VW_SOCIO_INFO WHERE NUM_SOCIO = :numSocio", nativeQuery = true)
+    List<Object[]> traerDetalleSocio(@Param("numSocio") int numSocio);
+
     @Procedure(name = "Socio.pa_BuscarSocioXNumeroParaCredito")
     HashMap pa_BuscarSocioXNumeroParaCredito(int NumSocio, String NombreFormateado, int NumSocioEncontrado,
                                              BigDecimal AhorrosAntesPs, BigDecimal psMut, BigDecimal psNgu,

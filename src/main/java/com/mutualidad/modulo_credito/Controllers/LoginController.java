@@ -370,6 +370,7 @@ public class LoginController implements Initializable {
                 nuevaVentana.setTitle("INICIO - ASESOR");
                 Image icon = new Image(getClass().getResourceAsStream("/assets/images/logo.png"));
                 nuevaVentana.getIcons().add(icon);
+                nuevaVentana.setAlwaysOnTop(false);
                 nuevaVentana.setScene(nuevaEscena);
                 nuevaVentana.setResizable(false);
                 nuevaVentana.centerOnScreen();

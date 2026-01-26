@@ -146,6 +146,10 @@ public class Servicio {
         return repoSocio.findByNumSocio(numSocio);
     }
 
+    public List<Object[]> traerDetalleSocio(int numSocio) {
+        return repoSocio.traerDetalleSocio(numSocio);
+    }
+
     public List<Object[]> traerTasas() {
         return repoSocio.traerTasas();
     }

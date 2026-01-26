@@ -14,8 +14,6 @@ public interface CreditoRepository extends JpaRepository<ModelCredito, Integer> 
     @Query(value = "SELECT * FROM VW_AVAL_CREDITO WHERE ID_CREDITO = :idCredito ", nativeQuery = true)
     List<Object[]> traerAvales(@Param("idCredito") int idCredito);
 
-
-
     @Query(value = "SELECT COUNT (ID_CREDITO) FROM VW_AVAL_CREDITO WHERE ID_CREDITO = :idCredito ", nativeQuery = true)
     int traerNumAvales(@Param("idCredito") int idCredito);
 }

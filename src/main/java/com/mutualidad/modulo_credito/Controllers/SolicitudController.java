@@ -1,6 +1,7 @@
 package com.mutualidad.modulo_credito.Controllers;
 
 import com.mutualidad.modulo_credito.Main;
+import com.mutualidad.modulo_credito.Models.ModelSocio;
 import com.mutualidad.modulo_credito.Services.Servicio;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -44,7 +45,7 @@ public class SolicitudController  implements Initializable {
              txtDirecPropiedad, txtPropietario, txtNumSocio3, txtNomSocio3,
             txtAhorrosConf, txtMontoConf, txtRiesgoConf, txtEmisorConf, txtGradConf,
             txtTasaOrdConf, txtMoraConf, txtTasaIvaConf, txtBonifConf, txtTipoConf,
-            txtAvalConf, txtTipoRiesgoConf, txtPlazoConf;
+            txtAvalConf, txtTipoRiesgoConf, txtPlazoConf, txtDireccionAval;
 
     @FXML
     private ComboBox cmbTipo, cmbTasa, cmbGradualidad, cmbPlazo, cmbBonif, cmbOpcionAval, cmbAvalAplica,
@@ -73,6 +74,9 @@ public class SolicitudController  implements Initializable {
 
     @FXML
     private TableColumn<Map<String, String>, String> colIdentificacion;
+
+    @FXML
+    private TableColumn<Map<String, String>, String> colDireccion;
 
     @FXML
     private ImageView imgBusqueda2, imgBusqueda1;
@@ -691,12 +695,13 @@ public class SolicitudController  implements Initializable {
         String nombreAval = "";
         String numeroAval = "";
         String ahorro ="";
+        String direccionAval = "";
 
 
 
         if(cmbOpcionAval.getSelectionModel().getSelectedIndex() == 1){
 
-            if(txtNumSocio.getText().isEmpty() ){
+            if(txtNumSocio.getText().isEmpty() || txtDireccionAval.getText().isEmpty() ){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("ERROR AL INTENTAR AGREGAR AL AVAL");
                 alert.setHeaderText("ERROR AL INTENTAR AGREGAR AL AVAL");
@@ -708,6 +713,7 @@ public class SolicitudController  implements Initializable {
             nombreAval = txtNomAval.getText().toString().toUpperCase();
             numeroAval = "N/A";
             ahorro = "N/A";
+            direccionAval = txtDireccionAval.getText().trim();
         }else{
             if(txtNumSocio.getText().isEmpty() ||
                     txtNumAval.getText().isEmpty() ){
@@ -728,6 +734,7 @@ public class SolicitudController  implements Initializable {
             ahorro = formatoMXN.format((BigDecimal) result.get("AhorrosAntesPs"));
             nombreAval = result.get("NombreFormateado").toString().toUpperCase();
             numeroAval = txtNumAval.getText().toString();
+            direccionAval = txtDireccionAval.getText().trim();
         }
         String parentesco  = cmbParentescoAval.getSelectionModel().getSelectedItem().toString().toUpperCase();
         String identificacion = cmbIdAval.getValue().toString();
@@ -737,16 +744,27 @@ public class SolicitudController  implements Initializable {
         fila.put("ahorro", ahorro);
         fila.put("parentesco", parentesco);
         fila.put("identificacion", identificacion);
+        fila.put("direccionAval", direccionAval);
+
 
         tblAvales.getItems().add(fila);
         txtNumAval.setText("");
         txtNomAval.setText("");
+        txtDireccionAval.setText("");
         lblError3.setVisible(false);
         txtNomAval.setEditable(true);
         txtNumAval.setEditable(true);
+        txtDireccionAval.setEditable(true);
+        cmbOpcionAval.setDisable(false);
+        imgBusqueda2.setVisible(true);
 
 
 
+    }
+
+    @FXML
+    public void CargarAvalConBoton() {
+        cargarDatosAval();
     }
 
     @FXML
@@ -758,6 +776,8 @@ public class SolicitudController  implements Initializable {
         tblPropietarios.getItems().add(fila);
 
 
+        txtPropietario.setText("");
+
 
     }
 
@@ -766,10 +786,11 @@ public class SolicitudController  implements Initializable {
     private void limpiarDatosAval() {
         txtNumAval.setText("");
         txtNomAval.setText("");
-
+        cmbOpcionAval.setDisable(false);
         lblError3.setVisible(false);
         txtNomAval.setEditable(true);
         txtNumAval.setEditable(true);
+        txtDireccionAval.setText("");
         tblAvales.getItems().clear();
 
     }
@@ -832,6 +853,13 @@ public class SolicitudController  implements Initializable {
                         BigDecimal.valueOf(0), BigDecimal.valueOf(0), "", "");
 
         if (result.get("Resultado").toString().equals("CORRECTO")) {
+            List<Object[]> socio = servicio.traerDetalleSocio(numSocio);
+            for (Object[] fila : socio) {
+                txtDireccionAval.setText("CALLE: " + fila[5].toString().toUpperCase());
+            }
+            txtDireccionAval.setEditable(false);
+            imgBusqueda2.setVisible(false);
+            cmbOpcionAval.setDisable(true);
             settearDatosAval(result);
 
         } else if (result.get("Resultado").toString().equals("INCORRECTO")) {
@@ -874,6 +902,13 @@ public class SolicitudController  implements Initializable {
 
 
         txtDirecPropiedad.setTextFormatter(
+                new TextFormatter<>(
+                        change -> {
+                            change.setText(change.getText().toUpperCase());
+                            return change;
+                        }));
+
+        txtDireccionAval.setTextFormatter(
                 new TextFormatter<>(
                         change -> {
                             change.setText(change.getText().toUpperCase());
@@ -980,6 +1015,10 @@ public class SolicitudController  implements Initializable {
                 data -> new SimpleStringProperty(data.getValue().get("identificacion"))
         );
 
+        colDireccion.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("direccionAval"))
+        );
+
 
         colPropietario.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -1066,6 +1105,7 @@ public class SolicitudController  implements Initializable {
                 obj.put("nombre", colNombre.getCellData(i));
                 obj.put("parentesco", colParentesco.getCellData(i));
                 obj.put("identificacion", colIdentificacion.getCellData(i));
+                obj.put("direccionAval", colDireccion.getCellData(i));
                 datosAval.add(obj);
             }
 
