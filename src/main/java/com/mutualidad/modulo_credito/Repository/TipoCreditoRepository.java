@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface TipoCreditoRepository extends JpaRepository<ModelTipoCredito, Integer> {
 
     ModelTipoCredito findByNombre(String nombre);
+
+    ModelTipoCredito findById(int Id);
 }

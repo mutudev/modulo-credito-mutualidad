@@ -46,6 +46,8 @@ public class BusquedaController implements Initializable {
 
   public ReimpresionContratosController reimpresionContratosController;
 
+  public GradualidadController gradualidadController;
+
   public int ventana;
 
   @Override
@@ -97,11 +99,19 @@ public class BusquedaController implements Initializable {
     this.solicitudController = controller;
     this.ventana = ventana;
     this.reimpresionContratosController = null;
+    this.gradualidadController = null;
   }
 
   public void setReimpresionController(ReimpresionContratosController controller) {
     this.reimpresionContratosController = controller;
     this.solicitudController = null;
+    this.gradualidadController = null;
+  }
+
+  public void setGradualidadController(GradualidadController controller) {
+    this.gradualidadController = controller;
+    this.solicitudController = null;
+    this.reimpresionContratosController = null;
   }
 
   @FXML
@@ -143,6 +153,10 @@ public class BusquedaController implements Initializable {
 
         if (reimpresionContratosController != null) {
           reimpresionContratosController.cargarSocioBuscado(numSocio);
+        }
+
+        if (gradualidadController != null) {
+          gradualidadController.cargarSocioBuscado(numSocio);
         }
 
 

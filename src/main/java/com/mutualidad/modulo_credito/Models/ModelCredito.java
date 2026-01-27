@@ -3,6 +3,7 @@ package com.mutualidad.modulo_credito.Models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -41,7 +42,7 @@ public class ModelCredito {
     private LocalDate fv;
 
     @Column(name = "TASA")
-    private float tasa;
+    private BigDecimal tasa;
 
     @Column(name = "MORA")
     private float mora;
@@ -51,4 +52,7 @@ public class ModelCredito {
 
     @Column(name = "STATUS")
     private int status;
+
+    @Column(name = "SOLICITUD_ID")
+    private int solicitud_id;
 }

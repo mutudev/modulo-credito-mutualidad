@@ -38,7 +38,7 @@ public interface SocioRepository extends JpaRepository<ModelSocio, Integer> {
     @Query(value = "SELECT * FROM CAT_PLAZOS", nativeQuery = true)
     List<Object[]> traerPlazos();
 
-    @Query(value = "SELECT * FROM CAT_GRADUALIDADES WHERE ID = 2 OR ID = 4", nativeQuery = true)
+    @Query(value = "SELECT * FROM CAT_GRADUALIDADES WHERE ID = 2 OR ID = 3", nativeQuery = true)
     List<Object[]> traerGradualidadesMut();
 
     @Query(value = "SELECT * FROM CAT_GRADUALIDADES", nativeQuery = true)

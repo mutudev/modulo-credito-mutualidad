@@ -26,6 +26,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class SolicitudController  implements Initializable {
@@ -770,14 +771,21 @@ public class SolicitudController  implements Initializable {
     @FXML
     private void agregarPropietario() {
         String nomPropietario = txtPropietario.getText().toUpperCase();
+        if(!txtPropietario.getText().trim().equals("") && !txtDirecPropiedad.getText().trim().equals("")){
 
-        Map<String, String> fila = new HashMap<>();
-        fila.put("nombrePropietario", nomPropietario);
-        tblPropietarios.getItems().add(fila);
-
-
-        txtPropietario.setText("");
-
+            Map<String, String> fila = new HashMap<>();
+            fila.put("nombrePropietario", nomPropietario);
+            tblPropietarios.getItems().add(fila);
+            txtPropietario.setText("");
+        }else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR AL INTENTAR AGREGAR AL PROPIETARIO");
+            alert.setHeaderText("ERROR AL INTENTAR AGREGAR AL PROPIETARIO");
+            alert.setContentText(
+                    "POR FAVOR, LLENE TODOS LOS CAMPOS");
+            alert.showAndWait();
+            return;
+        }
 
     }
 
@@ -1075,6 +1083,30 @@ public class SolicitudController  implements Initializable {
         BigDecimal mora = BigDecimal.valueOf(parsePorcentaje(txtMora.getText()));
         BigDecimal iva = BigDecimal.valueOf(parsePorcentaje(txtIva.getText()));
         BigDecimal gradualidad = BigDecimal.valueOf(0);
+
+        if(cmbAvalAplica.getSelectionModel().getSelectedItem().toString().equals("AVAL CON PROPIEDAD > $10,000.00") ){
+
+            Set<String> nombresAvales = tblAvales.getItems()
+                    .stream()
+                    .map(item -> item.get("nombre"))
+                    .collect(Collectors.toSet());
+
+            List<Map<String, String>> propietariosQueSonAvales = tblPropietarios.getItems()
+                    .stream()
+                    .filter(item -> nombresAvales.contains(item.get("nombrePropietario")))
+                    .collect(Collectors.toList());
+            if(propietariosQueSonAvales.size() != tblPropietarios.getItems().size()){
+
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("ERROR AL INTENTAR GUARDAR LA SOLICITUD");
+                alert.setHeaderText("ERROR AL INTENTAR GUARDAR LA SOLICITUD");
+                alert.setContentText(
+                        "AGREGUE A TODOS LOS PROPIETARIOS COMO AVALES.");
+                alert.showAndWait();
+                return;
+            }
+
+        }
 
         if (isRiesgo) {
             gradualidad = BigDecimal.valueOf(

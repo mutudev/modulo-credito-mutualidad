@@ -123,9 +123,30 @@ public class Servicio {
         return repoCredito.findById(id);
     }
 
-    public List<Object[]> traerCajerosParaDesembolso(int estado, String empresa, String turno) {
-        return repoUsuario.traerCajerosParaDesembolso(estado, empresa, turno);
+    public ModelTipoCredito encontrarTipoCreditoConId(int id) {
+        return repoTipoCredito.findById(id);
     }
+
+    public List<ModelCredito> encontrarCreditosConSocio(int socio) {
+        return repoCredito.findBySocio(socio);
+    }
+
+    public List<Object[]> traerCreditosParaGradualidades(int idCredito) {
+        return repoCredito.traerCreditosParaGradualidades(idCredito);
+    }
+
+    public List<Object[]> traerCreditosParaGradualidadesPorNumSocio(int numSocio) {
+        return repoCredito.traerCreditosParaGradualidadesPorNumSocio(numSocio);
+    }
+
+    public List<Object[]> chequeoGradualidadesReinicio(int numSocio) {
+        return repoCredito.chequeoGradualidadesReinicio(numSocio);
+    }
+
+    public ModelSolicitud obtenerSoliXId(int id) {
+        return repoSolicitud.findById(id);
+    }
+
 
     public List<ModelSolicitud> obtenerSolicitudesPendientes(int estado) {
         return repoSolicitud.findByEstado(estado);

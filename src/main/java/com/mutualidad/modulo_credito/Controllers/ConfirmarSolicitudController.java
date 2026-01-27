@@ -286,7 +286,8 @@ public class ConfirmarSolicitudController implements Initializable {
 
         String mes = fecha.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
-        String anioLetras = converter.asWords(BigDecimal.valueOf(fecha.getYear()));
+        String anioLetrasAnterior = converter.asWords(BigDecimal.valueOf(fecha.getYear()));
+        String anioLetras = anioLetrasAnterior.substring(0, anioLetrasAnterior.length() - 7);
         //Este no importa mucho de construir
         String declaraciones =  "<br/><br/>" + "<div style='text-align:center;'><b>DECLARACIONES</b></div>" + "<br/>";
 
@@ -370,7 +371,7 @@ public class ConfirmarSolicitudController implements Initializable {
 
                         "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
                         "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
-                        "<br/><br/><br/><br/><br/><br/><br/><br/>" +
+                        "<br/>" +
 
                         "<span style='font-size:8pt;'>Aviso de privacidad para las operaciones con espacios reducidos (datos deben de incluirse). " +
                         "Nueva Generación de Umán Asociación Civil, con domicilio en calle veintitrés número ciento " +
@@ -419,6 +420,8 @@ public class ConfirmarSolicitudController implements Initializable {
             List<Object[]> avales = servicio.traerAvales(idRetornado);
 
             String avalesJuntosEncabezado = txtNomSocio.getText().trim();
+            firmaAvalesYPrestamista = "<center>_____________________________<br/>" +
+                    "<b>"+ txtNomSocio.getText().trim() +  "</b></center>"+"<br/><br/><br/>";
             for (int i = 0; i < numAvales; i++) {
                 Object[] avalIterar = avales.get(i);
                 String nombreAval = avalIterar[2] != null ? avalIterar[2].toString() : "";
@@ -670,7 +673,7 @@ public class ConfirmarSolicitudController implements Initializable {
                 pars.put("avalTitulo" + idx, "Aval:");
                 pars.put(
                         "nombreAval" + idx,
-                        "Nombre: " + nombreAval + "\nDirección: " + direccionAvalEnviar
+                        "Nombre: " + nombreAval + "\nDirección: CALLE " + direccionAvalEnviar
                 );
                 pars.put("firmaAval" + idx, "FIRMA");
                 pars.put("mostrarLinea" + idx, true);

@@ -61,6 +61,7 @@ public interface SolicitudRepository extends JpaRepository<ModelSolicitud, Integ
 
     List<ModelSolicitud> findByEstado(int estado);
 
+    ModelSolicitud findById(int id);
 
     @Query(value = "SELECT * FROM VW_SOLICITUD_CREDITO_DETALLE WHERE ID = :idSolicitud ", nativeQuery = true)
     List<Object[]> traerSolicitudPendiente(@Param("idSolicitud") int idSolicitud);

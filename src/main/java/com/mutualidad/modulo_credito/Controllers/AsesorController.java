@@ -148,5 +148,31 @@ public class AsesorController implements Initializable {
         contentArea.getChildren().setAll(fxml);
     }
 
+    @FXML
+    public void calculoGradualidad() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/java/fx/gradualidad.fxml")
+        );
+
+        loader.setControllerFactory(context::getBean);
+
+        Parent fxml = loader.load();
+        contentArea.getChildren().setAll(fxml);
+    }
+
+    @FXML
+    public void calcularProyeccion() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/java/fx/proyecciones.fxml")
+        );
+
+        loader.setControllerFactory(context::getBean);
+
+        Parent fxml = loader.load();
+        contentArea.getChildren().setAll(fxml);
+    }
+
+
+
 
 }
