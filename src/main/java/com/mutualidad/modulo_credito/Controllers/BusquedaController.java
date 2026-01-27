@@ -44,6 +44,8 @@ public class BusquedaController implements Initializable {
 
   public SolicitudController solicitudController;
 
+  public ReimpresionContratosController reimpresionContratosController;
+
   public int ventana;
 
   @Override
@@ -94,6 +96,12 @@ public class BusquedaController implements Initializable {
   public void setCajeroController(SolicitudController controller, int ventana) {
     this.solicitudController = controller;
     this.ventana = ventana;
+    this.reimpresionContratosController = null;
+  }
+
+  public void setReimpresionController(ReimpresionContratosController controller) {
+    this.reimpresionContratosController = controller;
+    this.solicitudController = null;
   }
 
   @FXML
@@ -129,7 +137,14 @@ public class BusquedaController implements Initializable {
         String nombre = (String) selectedRow[0];
         String numSocio = String.valueOf(selectedRow[1]);
 
-        solicitudController.cargarSocioPorNombre(nombre, numSocio, ventana);
+        if (solicitudController != null) {
+            solicitudController.cargarSocioPorNombre(nombre, numSocio, ventana);
+        }
+
+        if (reimpresionContratosController != null) {
+          reimpresionContratosController.cargarSocioBuscado(numSocio);
+        }
+
 
         // Cierra la ventana actual
         validator = new Validator();

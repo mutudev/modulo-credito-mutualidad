@@ -136,5 +136,17 @@ public class AsesorController implements Initializable {
         contentArea.getChildren().setAll(fxml);
     }
 
+    @FXML
+    public void reimpresionContratos() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/java/fx/reimpresionContratos.fxml")
+        );
+
+        loader.setControllerFactory(context::getBean);
+
+        Parent fxml = loader.load();
+        contentArea.getChildren().setAll(fxml);
+    }
+
 
 }

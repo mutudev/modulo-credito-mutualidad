@@ -131,9 +131,18 @@ public class Servicio {
         return repoSolicitud.findByEstado(estado);
     }
 
+    public List<ModelCredito> obtenerParaReimpresion(int socio, String empresa) {
+        return repoCredito.findBySocioAndEmpresa(socio, empresa);
+    }
+
     public  ModelEmpresa obtenerEmpresaXNombre( String nombre){
         return repoEmpresa.findByNombre(nombre);
     }
+
+    public List<ModelEmpresa> traerCatalogoEmpresas() {
+        return repoEmpresa.findAll();
+    }
+
     public String obtenerSocioConNumero(int numSocio) {
         return repoSocio.traerNombreSocio(numSocio);
     }
