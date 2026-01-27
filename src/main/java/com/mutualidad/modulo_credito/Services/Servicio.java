@@ -65,8 +65,8 @@ public class Servicio {
 
     @Transactional
     public String confirmarSolicitud(int idCredito,int plazo, double tasa, double iva,
-                                     double mora , int isDesembolso, BigDecimal montoCredito,  String Resultado) {
-        return repoSolicitud.pa_ConfirmarSolicitud(idCredito,  plazo,tasa, iva,mora,isDesembolso,montoCredito, Resultado);
+                                     double mora , int isDesembolso, BigDecimal montoCredito, String dictamen,  String Resultado) {
+        return repoSolicitud.pa_ConfirmarSolicitud(idCredito,  plazo,tasa, iva,mora,isDesembolso,montoCredito, dictamen, Resultado);
     }
 
     @Transactional

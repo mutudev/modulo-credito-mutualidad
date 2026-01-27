@@ -63,7 +63,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </CheckBox>
-      <TextArea fx:id="taDictamen" layoutX="51.0" layoutY="337.0" prefHeight="99.0" prefWidth="904.0" wrapText="true" />
+      <TextArea fx:id="txtDictamen" layoutX="51.0" layoutY="337.0" prefHeight="99.0" prefWidth="904.0" wrapText="true" />
       <Label layoutX="51.0" layoutY="309.0" text="Dictamen:">
          <font>
             <Font name="System Bold" size="18.0" />

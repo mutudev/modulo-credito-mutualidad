@@ -781,7 +781,6 @@ public class SolicitudController  implements Initializable {
 
     }
 
-
     @FXML
     private void limpiarDatosAval() {
         txtNumAval.setText("");
@@ -791,8 +790,6 @@ public class SolicitudController  implements Initializable {
         txtNomAval.setEditable(true);
         txtNumAval.setEditable(true);
         txtDireccionAval.setText("");
-        tblAvales.getItems().clear();
-
     }
 
     @FXML

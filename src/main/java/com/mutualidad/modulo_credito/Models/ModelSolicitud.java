@@ -78,6 +78,7 @@ import java.time.LocalDateTime;
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "mora", type = Double.class),
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "is_desembolso", type = Integer.class),
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "monto_credito", type = BigDecimal.class),
+                @StoredProcedureParameter(mode = ParameterMode.IN, name = "dictamen", type = String.class),
                 @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Resultado", type = String.class)
         }
 )

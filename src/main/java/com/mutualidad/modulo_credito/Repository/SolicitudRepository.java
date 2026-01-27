@@ -53,6 +53,7 @@ public interface SolicitudRepository extends JpaRepository<ModelSolicitud, Integ
             @Param("mora") Double mora,
             @Param("is_desembolso") int isDesembolso,
             @Param("monto_credito") BigDecimal montoCredito ,
+            @Param("dictamen") String dictamen ,
             @Param("Resultado") String Resultado
             );
 

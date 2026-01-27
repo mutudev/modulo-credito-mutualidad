@@ -41,7 +41,7 @@ public class ConfirmarSolicitudController implements Initializable {
             txtIva, txtTipoCred, txtId, txtMontoAut, txtPlazo;
 
     @FXML
-    private TextArea taDictamen;
+    private TextArea txtDictamen;
 
     @FXML
     private Button btnLimpiarAut, btnConfirmar, btnPagare, btnPlan, btnContrarto;
@@ -59,26 +59,17 @@ public class ConfirmarSolicitudController implements Initializable {
     private Servicio servicio;
 
     public  int idCreditoRecibido = 0;
-
-
     public boolean isRiesgo=false;
-
     String asesor = "", numSocio = "", nomEmpresa = "", monto = "",
             tasa = "", mora = "", iva = "",
             nombreCredito = "",
-            nombreSocio = "", codigoEmpresa = "", plazo = "", firmas    ="" , aviso="",
-    html="";
+            nombreSocio = "", codigoEmpresa = "", plazo = "", firmas    ="" , aviso="", html="";
     int idRetornado = 0;
     Dotenv dotenv = Dotenv.load();
-
-
-
     DecimalFormat formatoPorcentaje = new DecimalFormat("#0.00'%'");
-
     NumberFormat formatoMXN = NumberFormat.getCurrencyInstance(new Locale("es", "MX"));
     MoneyConverters converter = MoneyConverters.SPANISH_BANKING_MONEY_VALUE;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -93,6 +84,13 @@ public class ConfirmarSolicitudController implements Initializable {
                                 change.setText(change.getText().substring(0, change.getText().lastIndexOf('.')));
                             }
 
+                            return change;
+                        }));
+
+        txtDictamen.setTextFormatter(
+                new TextFormatter<>(
+                        change -> {
+                            change.setText(change.getText().toUpperCase());
                             return change;
                         }));
 
@@ -166,6 +164,17 @@ public class ConfirmarSolicitudController implements Initializable {
             return;
         }
 
+        if (txtDictamen.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR AL INTENTAR CONFIRMAR");
+            alert.setHeaderText("ERROR AL INTENTAR CONFIRMAR LA SOLICITUD DE CRÉDITO.");
+            alert.setContentText("POR FAVOR, INSERTE UN DICTAMEN DE CRÉDITO");
+            alert.showAndWait();
+            return;
+        }
+
+        String dictamen = txtDictamen.getText().trim();
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("CONFIRMACIÓN DE SOLICITUD");
         alert.setHeaderText("¿ESTÁ SEGURO QUE DESEA CONFIRMAR LA SOLICITUD?");
@@ -185,6 +194,7 @@ public class ConfirmarSolicitudController implements Initializable {
                     parsePorcentaje(txtMora.getText()),
                     isDesembolsoEfectivo,
                     BigDecimal.valueOf(parseMoneda(txtMontoAut.getText())),
+                    dictamen,
                     ""
             );
 
@@ -197,6 +207,7 @@ public class ConfirmarSolicitudController implements Initializable {
                 alert.setContentText("PUEDE PROCEDER A GENERAR LOS DOCUMENTOS");
                 alert.showAndWait();
 
+                btnConfirmar.setDisable(true);
                 btnContrarto.setVisible(true);
                 btnPagare.setVisible(true);
                 btnPlan.setVisible(true);
@@ -279,7 +290,7 @@ public class ConfirmarSolicitudController implements Initializable {
         //Este no importa mucho de construir
         String declaraciones =  "<br/><br/>" + "<div style='text-align:center;'><b>DECLARACIONES</b></div>" + "<br/>";
 
-        String segundoParrafoEncabezado =  "<b>1.</b>" + apoderadoAbreviado + ", como Apoderado Legal de " +
+        String segundoParrafoEncabezado =  "<b>1. </b>" + apoderadoAbreviado + ", como Apoderado Legal de " +
                 "<b>“"+ empresaEmisoraCompleto +"”</b>, también conocida como y sus correspondientes " +
                 "abreviaturas <b>“"+abreviaturas+"”</b>, manifiesta ser "+ dotenv.get("TITULO_APODERADO") + ", " +
                 "mayor de edad legal, continúa declarando tener como domicilio el predio marcado con el " +
@@ -291,17 +302,13 @@ public class ConfirmarSolicitudController implements Initializable {
 
                 "<br/><br/>";
 
-        String aval = "<br/><br/>" +
+        String aval = "";
 
-                "<b>Aval</b>" +
-
-                "<br/><br/>";
-
-        String clausulas =  "<br/><br/><br/>" +
+        String clausulas =  "<br/><br/>" +
 
                 "<div style='text-align:center;'><b>CLAUSULAS</b></div>" +
 
-                "<br/><br/>";
+                "<br/>";
 
         String clausula1 = "";
 
@@ -315,9 +322,7 @@ public class ConfirmarSolicitudController implements Initializable {
 
                 "<br/><br/>";
 
-        String clausula3 = "<br/><br/>" +
-
-                "<b>III.- </b> El domicilio señalado, será en común para notificar a todos y cada uno de los " +
+        String clausula3 = "<b>III.- </b> El domicilio señalado, será en común para notificar a todos y cada uno de los " +
                 "deudores solidarios, así como para todo lo relativo al cumplimiento de pago del préstamo " +
                 "solicitado, con renuncia expresa de señalar otro domicilio y vecindad." +
 
@@ -363,7 +368,9 @@ public class ConfirmarSolicitudController implements Initializable {
                 "<html>" +
                         "<body>" +
 
-                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
+                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
+                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
+                        "<br/><br/><br/><br/><br/><br/><br/><br/>" +
 
                         "<span style='font-size:8pt;'>Aviso de privacidad para las operaciones con espacios reducidos (datos deben de incluirse). " +
                         "Nueva Generación de Umán Asociación Civil, con domicilio en calle veintitrés número ciento " +
@@ -393,18 +400,25 @@ public class ConfirmarSolicitudController implements Initializable {
             soloColoniaPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
         }
 
-        String prestamistaParrafo = "<b>2.</b> "+ nombreSocio + ", manifiesta ser <b>" + estadoCivilPrestamista + "</b>, CON OFICIO " +
+        String prestamistaParrafo = "<b>2.</b> "+ txtNomSocio.getText().trim() + ", manifiesta ser <b>" + estadoCivilPrestamista + "</b>, CON OFICIO " +
                 "<b>" + trabajoPrestamista + "</b>, continúa declarando tener como domicilio el predio ubicado " +
                 "en la calle "+ direccionSocioPrestamista +", de la Col. "+ soloColoniaPrestamista  +", " +
                 "en la ciudad de UMAN, YUCATAN, México.";
 
         //Evaluar si es de riesgo o no para el primer parráfo, saber si paso al deudor y a los avales o solo al primero
         if (isRiesgo) {
+
+            aval = "<br/><br/>" +
+
+                    "<b>Aval</b>" +
+
+                    "<br/><br/>";
+
             //Obtener a los avales
             int numAvales = servicio.traerNumAvales(idRetornado);
             List<Object[]> avales = servicio.traerAvales(idRetornado);
 
-            String avalesJuntosEncabezado = txtNumSocio.getText().trim();
+            String avalesJuntosEncabezado = txtNomSocio.getText().trim();
             for (int i = 0; i < numAvales; i++) {
                 Object[] avalIterar = avales.get(i);
                 String nombreAval = avalIterar[2] != null ? avalIterar[2].toString() : "";
@@ -428,9 +442,18 @@ public class ConfirmarSolicitudController implements Initializable {
 
                 if (numSocioAVal == 0) {
                     //El aval no es socio
-                    avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
-                            "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
-                            "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.<br/>";
+
+                    if (i == numAvales - 1) {
+                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
+                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
+                                "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.";
+                    } else {
+                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
+                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
+                                "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.<br/><br/>";
+                    }
+
+
 
                 } else {
                     //El aval si es socio
@@ -449,11 +472,19 @@ public class ConfirmarSolicitudController implements Initializable {
                         soloColoniaAvalPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
                     }
 
+                    if (i == numAvales - 1) {
+                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
+                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
+                                "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
+                                "en la ciudad de UMAN, YUCATAN, México.";
+                    } else {
+                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
+                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
+                                "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
+                                "en la ciudad de UMAN, YUCATAN, México." + "<br/><br/>";
+                    }
 
-                    avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
-                            "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                            "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
-                            "en la ciudad de UMAN, YUCATAN, México." + "<br/>";
+
                 }
 
             } // Fin del for de llenado dinámico de avales
@@ -537,217 +568,6 @@ public class ConfirmarSolicitudController implements Initializable {
             viewer.setSize(800, 600);
             viewer.setLocationRelativeTo(null);
             viewer.setTitle("CONTRATO DE CRÉDITO");
-            viewer.setVisible(true);
-
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
-    @FXML
-    public void mostrarContratoAnt(){
-        int numAvales = servicio.traerNumAvales(idRetornado);
-        List<String> numSocioAval = new ArrayList<>();
-        List<String> nomAval = new ArrayList<>();
-        List<String> parentescoAval = new ArrayList<>();
-        List<Object[]> avales = servicio.traerAvales(idRetornado);
-        String apoderado = "ING. CARLOS ALBERTO VILLANUEVA RUIZ";
-        String apoderadoSinTitulo = "CARLOS ALBERTO VILLANUEVA RUIZ";
-        String empresaCompleto = "";
-        String empresaRS = "";
-        String tituloApoderado = "Ingeniero Civil";
-        String direcApdoerado = "ciento ochenta y tres, de la calle nueve";
-
-        String ciudadApoderado = "ciento ochenta y tres, de la calle nueve";
-
-
-        if(nomEmpresa.equals("NUEVA GENERACION DE UMAN")){
-             empresaCompleto = "NUEVA GENERACION DE UMAN ASOCIACION CIVIL";
-
-            empresaRS = "NUEVA GENERACION DE UMAN, A.C.";
-        }
-
-        if(numAvales!=0) {
-            for (Object[] aval : avales) {
-                numSocioAval.add(aval[1].toString());
-                nomAval.add(aval[2].toString());
-                parentescoAval.add(aval[4].toString());
-            }
-        }
-
-        switch (numAvales){
-            case 1:
-                Object[] aval1 = null;
-                Object[] prestamista = servicio.traerInfoSocio(Integer.parseInt(numSocio)) ;
-                if(Integer.parseInt(numSocioAval.get(0)) != 0){
-                    aval1 = servicio.traerInfoSocio(Integer.parseInt(numSocioAval.get(0))) ;
-                }
-
-                html =
-                        "<html>" +
-                                "<body style='font-size:11pt; font-family:Serif;'>" +
-
-                                "<b>CONTRATO</b> QUE CELEBRAN POR UNA PARTE EL "+ apoderado + " COMO " +
-                                "APODERADO DE <b>“"+ empresaCompleto+ "”</b> y sus correspondientes " +
-                                "abreviaturas <b>“"+ empresaRS+ "”</b> Y POR LA OTRA "+ nombreSocio +
-                                " Y " + nomAval.get(1).toString() +", AL TENOR DE LAS SIGUIENTES CLAUSULAS." +
-
-                                "<br/><br/>" +
-
-                                "<div style='text-align:center;'><b>DECLARACIONES</b></div>" +
-
-                                "<br/>" +
-
-                                "<b>1.</b>" + apoderadoSinTitulo+", como Apoderado Legal de " +
-                                "<b>“"+ empresaCompleto +"”</b>, también conocida como y sus correspondientes " +
-                                "abreviaturas <b>“"+empresaRS+"”</b>, manifiesta ser "+ tituloApoderado+", " +
-                                "mayor de edad legal, continúa declarando tener como domicilio el predio marcado con el " +
-                                "numero "+direcApdoerado+ ", en la ciudad de "+ ciudadApoderado+", México." +
-
-                                "<br/><br/>" +
-
-                                "<b>Prestamista</b>" +
-
-                                "<br/><br/>" +
-
-                                "<b>2.</b> "+   nombreSocio +", manifiesta ser <b>"+ prestamista[7].toString() + "</b>, CON OFICIO " +
-                                "<b>"+ prestamista[10].toString()+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle "+ prestamista[5].toString() +", de la Col. "+ prestamista[4].toString().toUpperCase()  +", " +
-                                "en la ciudad de UMAN, YUCATAN, México." +
-
-                                "<br/><br/>" +
-
-                                "<b>Aval</b>" +
-
-                                "<br/><br/>" +
-
-                                "<b>2.</b> "+ nomAval.get(0).toString()  +", manifiesta ser <b>"+ aval1[7].toString() + "</b>, CON OFICIO " +
-                                "<b>"+ aval1[10].toString()+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle "+ aval1[5].toString() +", de la Col. "+ aval1[4].toString().toUpperCase()  +", " +
-                                "en la ciudad de UMAN, YUCATAN, México." +
-
-                                "<br/><br/><br/>" +
-
-                                "<div style='text-align:center;'><b>CLAUSULAS</b></div>" +
-
-                                "<br/><br/>" +
-
-                                "<b>I.- </b> MARIA JUSTINA CHE IUIT Y MARIA ANGELICA CHE IUIT, acepta(n) estar interesado(s) " +
-                                "en hacer préstamo de dinero en efectivo que proporciona " +
-                                "<b>“NUEVA GENERACION DE UMAN ASOCIACION CIVIL”</b> y sus correspondientes abreviaturas " +
-                                "<b>“NUEVA GENERACION DE UMAN A.C.”</b>." +
-
-                                "<br/><br/>" +
-
-                                "<b>II.-</b> NUEVA GENERACION DE UMAN ASOCIACION CIVIL y sus correspondientes abreviaturas " +
-                                "<b>“NUEVA GENERACION DE UMAN A.C.”</b>, concederá los préstamos que se le requieran, " +
-                                "siempre que se desarrolle de la siguiente manera: proporcionando a los deudores la " +
-                                "ubicación correcta del domicilio en el cual se le haga las respectivas notificaciones " +
-                                "en caso de demora de pago del préstamo establecido." +
-
-                                "<br/><br/>" +
-
-                                "<b>III.-</b> El domicilio señalado, será en común para notificar a todos y cada uno de los " +
-                                "deudores solidarios, así como para todo lo relativo al cumplimiento de pago del préstamo " +
-                                "solicitado, con renuncia expresa de señalar otro domicilio y vecindad." +
-
-                                "<br/><br/>" +
-
-                                "<b>IV.-</b> Finalmente, MARIA JUSTINA CHE IUIT Y MARIA ANGELICA CHE IUIT, declaran estar de " +
-                                "acuerdo señalando como domicilio en el cual deban recibir todo tipo de notificaciones el " +
-                                "predio ubicado en la calle C-20 B N°93-B X 7 Y 9, COL. SAN FRANCISCO, de la Colonia " +
-                                "SAN FRANCISCO, en la ciudad de UMAN, YUCATAN, México." +
-
-                                "<br/><br/>" +
-
-                                "<b>V.-</b> En caso de controversia en juicio serán notificadas a todos y cada uno de los " +
-                                "deudores en el domicilio del deudor principal el cual es el predio ubicado en la calle " +
-                                "C-20 B N°93-B X 7 Y 9, COL. SAN FRANCISCO, de la Colonia SAN FRANCISCO, en la ciudad de " +
-                                "UMAN, YUCATAN, México." +
-
-                                "<br/><br/>" +
-
-                                "<b>VI.-</b> Los comparecientes se someten de una manera expresa a la jurisdicción y " +
-                                "competencia de los jueces y tribunales de esta ciudad de Umán, Yucatán, México, " +
-                                "renunciando a cualquier fuero que pudiera corresponderles por razón de su origen o " +
-                                "domicilio." +
-
-                                "<br/><br/>" +
-
-                                "Enteradas las partes y conformes con el contenido y alcance legal del presente contrato, " +
-                                "lo firman el día 28 de Febrero de dos mil veintidós." +
-
-                                "</body></html>";
-
-
-                 firmas =
-                        "<html>" +
-                                "<body>" +
-
-                                "<br/><br/>" +
-
-                                "<center><b>EL ACREEDOR</b></center>" +
-
-                                "<br/><br/><br/>" +
-
-                                "<center>_____________________________<br/>" +
-                                "<b>ING. CARLOS ALBERTO VILLANUEVA RUIZ</b></center>" +
-
-                                "<br/><br/>" +
-
-                                "<center><b>LOS DEUDORES</b></center>" +
-
-                                "<br/><br/><br/>" +
-
-                                "<center>_____________________________<br/>" +
-                                "<b>MARIA JUSTINA CHE IUIT</b></center>" +
-
-                                "<br/><br/><br/>" +
-
-                                "<center>_____________________________<br/>" +
-                                "<b>MARIA ANGELICA CHE IUIT</b></center>" +
-
-
-                                "</body>" +
-                                "</html>";
-
-
-                aviso =
-                        "<html>" +
-                                "<body>" +
-
-                                "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
-
-                                "<span style='font-size:8pt;'>Aviso de privacidad para las operaciones con espacios reducidos (datos deben de incluirse). " +
-                                "Nueva Generación de Umán Asociación Civil, con domicilio en calle veintitrés número ciento " +
-                                "ochenta y tres letra “B” de la ciudad de Umán, Estado de Yucatán; utilizará sus datos " +
-                                "personales aquí recabados para la obtención del crédito solicitado. Para mayor información " +
-                                "acerca del tratamiento y de los derechos que puede hacer valer, usted puede acceder al " +
-                                "aviso de privacidad completo a través de la publicación y exhibición permanente que se " +
-                                "realiza en la entrada o recepción del domicilio antes citado de esta Asociación.</span>" +
-
-                                "</body>" +
-                                "</html>";
-                break;
-        }
-        Map pars = new HashMap<>();
-
-        pars.put("textHtml", html);
-        pars.put("textFirmas", firmas);
-        pars.put("textAviso", aviso);
-        try {
-            InputStream isRepo = getClass().getResourceAsStream("/Reports/Blank_A4.jasper");
-            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
-
-            JasperViewer viewer = new JasperViewer(jpRepo, false);
-
-            viewer.setAlwaysOnTop(true);
-            viewer.setSize(800, 600);
-            viewer.setLocationRelativeTo(null);
-            viewer.setTitle("PAGARE DE CRÉDITO");
             viewer.setVisible(true);
 
         }catch (Exception e) {
@@ -907,7 +727,6 @@ public class ConfirmarSolicitudController implements Initializable {
         btnLimpiarAut.setVisible(false);
         txtMontoAut.setEditable(true);
     }
-
 
     private double parseMoneda(String moneda) {
         try {
