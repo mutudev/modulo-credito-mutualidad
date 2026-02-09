@@ -2,12 +2,21 @@ package com.mutualidad.modulo_credito.Controllers;
 
 import com.mutualidad.modulo_credito.Services.Servicio;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.view.JasperViewer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
@@ -15,11 +24,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 @Component
 public class ProyeccionController  implements Initializable {
@@ -298,10 +305,11 @@ public class ProyeccionController  implements Initializable {
                     .add(ivaInteres);
 
             saldo = saldo.subtract(capital);
+            String fechaFormateada = fechaPago.getDayOfMonth() + "/" + fechaPago.getMonthValue() + "/" + fechaPago.getYear();
 
             Map<String, String> fila = Map.of(
                     "cuota", String.valueOf(numCuota),
-                    "fecha", fechaPago.toString(),
+                    "fecha", fechaFormateada.toString(),
                     "capital", formatoMXN.format(capital),
                     "intereses", formatoMXN.format(interes),
                     "iva", formatoMXN.format(ivaInteres),
@@ -319,6 +327,60 @@ public class ProyeccionController  implements Initializable {
 
         btnImprimir.setDisable(false);
     }
+
+    @FXML
+    public void generarReporte(){
+        ObservableList<Map<String, String>> items = tblProyeccion.getItems();
+        Collection<Map<String, ?>> datosTabla = new ArrayList<>();
+
+        for (Map<String, String> item : items) {
+            Map<String, Object> fila = new HashMap<>();
+            fila.put("cuota", item.get("cuota"));
+            fila.put("fecha", item.get("fecha"));
+            fila.put("capital", item.get("capital"));
+            fila.put("intereses", item.get("intereses"));
+            fila.put("iva", item.get("iva"));
+            fila.put("total", item.get("total"));
+            fila.put("saldo", item.get("saldo"));
+            fila.put("dias", item.get("dias"));
+            datosTabla.add(fila);
+        }
+
+        JRMapCollectionDataSource dataSource = new JRMapCollectionDataSource(datosTabla);
+
+        LocalDateTime fecha = LocalDateTime.now();
+        String fechaForm = fecha.getDayOfMonth() + "/" + fecha.getMonthValue() + "/" + fecha.getYear();
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("montoCredito", txtMonto.getText());
+        parametros.put("tasaCredito", cmbTasa.getValue().toString());
+        parametros.put("plazoCredito", cmbPlazo.getValue().toString());
+        parametros.put("asesor", LoginController.usuarioLoggeado);
+        parametros.put("fechaImpresion", fechaForm);
+        parametros.put("tipoCredito", cmbTipo.getValue().toString());
+        parametros.put("dataSource", dataSource);
+
+        try {
+            InputStream isRepo = getClass().getResourceAsStream("/Reports/proyeccion.jasper");
+            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+
+            // ✅ CAMBIAR ESTO - Usar JREmptyDataSource para el reporte principal
+            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, parametros, new JREmptyDataSource());
+
+            JasperViewer viewer = new JasperViewer(jpRepo, false);
+            viewer.setAlwaysOnTop(true);
+            viewer.setSize(800, 600);
+            viewer.setLocationRelativeTo(null);
+            viewer.setTitle("PROYECCIÓN DE CRÉDITO");
+            viewer.setVisible(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
 
 

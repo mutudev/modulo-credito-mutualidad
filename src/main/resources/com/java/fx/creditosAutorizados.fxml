@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.CreditosAutorizadosController">
+   <children>
+      <Label layoutX="34.0" layoutY="28.0" text="Creditos Autorizados" textFill="#39577c">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="34.0" layoutY="83.0" text="Fecha de Inicio:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="34.0" layoutY="164.0" text="Empresa Emisora:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="cmbEmpresa" layoutX="199.0" layoutY="158.0" prefHeight="39.0" prefWidth="373.0" />
+      <Button fx:id="btnGenerar" layoutX="594.0" layoutY="158.0" mnemonicParsing="false" onAction="#traerRegistros" style="-fx-background-color: #185754;" text="Generar Reporte" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <DatePicker fx:id="dpFechainicio" layoutX="172.0" layoutY="78.0" />
+      <Label layoutX="450.0" layoutY="84.0" text="Fecha de Fin:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <DatePicker fx:id="dpFechafinal" layoutX="569.0" layoutY="78.0" />
+      <TableView fx:id="tblCreditos" layoutX="156.0" layoutY="460.0" prefHeight="200.0" prefWidth="710.0" visible="false">
+        <columns>
+          <TableColumn fx:id="colIdCredito" prefWidth="75.0" text="C1" />
+          <TableColumn fx:id="colEmpresa" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colNumero" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colNombre" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colFecha" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colMonto" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colTipo" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="colTasa" prefWidth="75.0" text="C2" />
+        </columns>
+      </TableView>
+   </children>
+</Pane>

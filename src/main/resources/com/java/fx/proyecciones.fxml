@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
@@ -38,11 +39,17 @@
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
       </Button>
       <Button fx:id="btnLimpiar" layoutX="742.0" layoutY="140.0" mnemonicParsing="false" onAction="#limpiar" prefHeight="39.0" prefWidth="95.0" style="-fx-background-color: #212691;" text="Limpiar" textFill="WHITE">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
       </Button>
       <Label layoutX="347.0" layoutY="146.0" text="Tasa:">
          <font>
@@ -65,10 +72,13 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TableView>
-      <Button fx:id="btnImprimir" layoutX="830.0" layoutY="495.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="123.0" style="-fx-background-color: #185754;" text="Imprimir" textFill="WHITE">
+      <Button fx:id="btnImprimir" layoutX="830.0" layoutY="495.0" mnemonicParsing="false" onAction="#generarReporte" prefHeight="39.0" prefWidth="123.0" style="-fx-background-color: #185754;" text="Imprimir" textFill="WHITE">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
       </Button>
    </children>
 </Pane>

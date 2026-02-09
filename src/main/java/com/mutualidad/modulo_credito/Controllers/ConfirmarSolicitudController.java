@@ -6,9 +6,12 @@ import com.mutualidad.modulo_credito.Services.Servicio;
 import com.sun.jdi.event.StepEvent;
 import com.tenpisoft.n2w.MoneyConverters;
 import io.github.cdimascio.dotenv.Dotenv;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -70,6 +73,7 @@ public class ConfirmarSolicitudController implements Initializable {
     NumberFormat formatoMXN = NumberFormat.getCurrencyInstance(new Locale("es", "MX"));
     MoneyConverters converter = MoneyConverters.SPANISH_BANKING_MONEY_VALUE;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public ListadoSolicitudesController controller;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -94,12 +98,34 @@ public class ConfirmarSolicitudController implements Initializable {
                             return change;
                         }));
 
+        Platform.runLater(
+                () -> {
+                    Stage stage = (Stage) btnConfirmar.getScene().getWindow();
+                    stage.setOnCloseRequest(event -> cierreDeVentana(event));
+                });
+
 
     }
 
-    public void settearDatos(int idCredito) throws ParseException {
+    public void cierreDeVentana(Event event) {
+        event.consume();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("CIERRE DE CONFIRMACIÓN");
+        alert.setHeaderText("¿ESTÁ SEGURO QUE DESEA CERRAR LA CONFIRMACIÓN?");
+        alert.setContentText(
+                "EN CASO DE QUE SÍ, PRESIONE ACEPTAR, EN CASO CONTRARIO PRESIONE CANCELAR");
 
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            controller.cargarSolicitudes();
+            Stage ventanaActual = (Stage) btnConfirmar.getScene().getWindow();
+            ventanaActual.close();
+        }
+    }
 
+    public void settearDatos(int idCredito, ListadoSolicitudesController controller) throws ParseException {
+
+        this.controller = controller;
         this.idCreditoRecibido = idCredito;
 
         List<Object[]> solicitudPendiente = servicio.traerDatosSolicitudPendiente(idCredito);
@@ -287,7 +313,7 @@ public class ConfirmarSolicitudController implements Initializable {
         String mes = fecha.getMonth()
                 .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
         String anioLetrasAnterior = converter.asWords(BigDecimal.valueOf(fecha.getYear()));
-        String anioLetras = anioLetrasAnterior.substring(0, anioLetrasAnterior.length() - 7);
+        String anioLetras = anioLetrasAnterior.substring(0, anioLetrasAnterior.length() - 11);
         //Este no importa mucho de construir
         String declaraciones =  "<br/><br/>" + "<div style='text-align:center;'><b>DECLARACIONES</b></div>" + "<br/>";
 

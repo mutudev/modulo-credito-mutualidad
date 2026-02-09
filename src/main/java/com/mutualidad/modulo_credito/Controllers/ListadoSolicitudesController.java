@@ -61,10 +61,10 @@ public class ListadoSolicitudesController implements Initializable {
 
         // 🔹 Vincular columnas de texto
         colFolio.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().getId().toString()));
+                new SimpleStringProperty(data.getValue().getId().toString()));
 
         colNumSocio.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().getNumSocio().toString()));
+                new SimpleStringProperty(data.getValue().getNumSocio().toString()));
 
         colNombre.setCellValueFactory(data -> {
 
@@ -80,7 +80,7 @@ public class ListadoSolicitudesController implements Initializable {
 
 
         colMonto.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(formatoMXN.format(data.getValue().getMonto())));
+                new SimpleStringProperty(formatoMXN.format(data.getValue().getMonto())));
 
         colAcciones.setCellFactory(param -> new TableCell<>() {
 
@@ -236,7 +236,7 @@ public class ListadoSolicitudesController implements Initializable {
                         ConfirmarSolicitudController controller =
                                 loader.getController();
 
-                        controller.settearDatos(idSolicitud);
+                        controller.settearDatos(idSolicitud, ListadoSolicitudesController.this);
                         Stage stage = new Stage();
                         stage.setTitle("Confirmar Solicitud");
                         stage.setScene(scene);
@@ -260,7 +260,12 @@ public class ListadoSolicitudesController implements Initializable {
         cargarSolicitudes();
     }
 
-    private void cargarSolicitudes() {
+    public void cargarSolicitudes() {
+
+
+        if (tblSolicitudes.getItems() != null) {
+            tblSolicitudes.getItems().clear();
+        }
         List<ModelSolicitud> solicitudes = servicio.obtenerSolicitudesPendientes(2);
         ObservableList<ModelSolicitud> data =
                 FXCollections.observableArrayList(solicitudes);

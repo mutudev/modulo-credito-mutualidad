@@ -2,16 +2,18 @@ package com.mutualidad.modulo_credito.Services;
 
 import com.mutualidad.modulo_credito.Models.*;
 import com.mutualidad.modulo_credito.Repository.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.StoredProcedureQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class Servicio {
@@ -35,10 +37,94 @@ public class Servicio {
     private CreditoRepository repoCredito;
 
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+
     @Transactional
     public HashMap validarLogin(String usuario, String password, String resultado, int rol) {
         return repoUsuario.pa_validarLogin(usuario, password, resultado, rol);
     }
+
+
+    @Transactional
+    public List<Map<String, Object>> obtenerCarteras(int opcion, String empresa) {
+
+        StoredProcedureQuery sp = entityManager
+                .createStoredProcedureQuery("pa_ObtenerCarteras");
+
+        sp.registerStoredProcedureParameter("opcion", Integer.class, ParameterMode.IN);
+        sp.registerStoredProcedureParameter("empresa", String.class, ParameterMode.IN);
+
+        sp.setParameter("opcion", opcion);
+        sp.setParameter("empresa", empresa);
+
+        List<Object[]> result = sp.getResultList();
+
+        List<Map<String, Object>> lista = new ArrayList<>();
+        int indice = 1;
+
+        for (Object[] row : result) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("indice", indice);
+            map.put("IdCredito", row[0]);
+            map.put("empresa", row[1]);
+            map.put("num_socio", row[2]);
+            map.put("nombre_socio", row[3]);
+            map.put("fecha_desembolso", row[4]);
+            map.put("monto_desembolso", row[5]);
+            map.put("fecha_cuota_pendiente", row[6]);
+            map.put("cuotas", row[7]);
+            map.put("tasa", row[8]);
+            map.put("saldo_credito", row[9]);
+            map.put("fecha_ultima_pago", row[10]);
+            indice++;
+            lista.add(map);
+        }
+
+        return lista;
+    }
+
+    @Transactional
+    public List<Map<String, Object>> obtenerCreditos(String fechaInicio, String fechaFin, String codEmpresa) {
+
+        StoredProcedureQuery sp = entityManager
+                .createStoredProcedureQuery("pa_ObtenerCreditosMes");
+
+        sp.registerStoredProcedureParameter("fecha_inicio", String.class, ParameterMode.IN);
+        sp.registerStoredProcedureParameter("fecha_fin", String.class, ParameterMode.IN);
+        sp.registerStoredProcedureParameter("empresa", String.class, ParameterMode.IN);
+
+        sp.setParameter("fecha_inicio", fechaInicio);
+        sp.setParameter("fecha_fin", fechaFin);
+        sp.setParameter("empresa", codEmpresa);
+
+        List<Object[]> result = sp.getResultList();
+
+        List<Map<String, Object>> lista = new ArrayList<>();
+        int indice = 1;
+
+        for (Object[] row : result) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("indice", indice);
+            map.put("IdCredito", row[0]);
+            map.put("empresa", row[1]);
+            map.put("num_socio", row[2]);
+            map.put("nombre_socio", row[3]);
+            map.put("fecha_desembolso", row[4]);
+            map.put("monto_desembolso", row[5]);
+            map.put("tipo", row[6]);
+            map.put("tasa", row[7]);
+
+            indice++;
+
+            lista.add(map);
+        }
+
+        return lista;
+    }
+
+
 
     @Transactional
     public HashMap buscarSocioSolicitud(

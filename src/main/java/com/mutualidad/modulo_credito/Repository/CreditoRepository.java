@@ -3,10 +3,13 @@ package com.mutualidad.modulo_credito.Repository;
 import com.mutualidad.modulo_credito.Models.ModelCredito;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface CreditoRepository extends JpaRepository<ModelCredito, Integer> {
 
@@ -30,6 +33,7 @@ public interface CreditoRepository extends JpaRepository<ModelCredito, Integer> 
 
     @Query(value = "SELECT TOP 1 * FROM VW_HISTORIAL_CREDITO_GRADUALIDAD WHERE SOCIO = :numSocio ORDER BY CREDITO_ID DESC", nativeQuery = true)
     List<Object[]> chequeoGradualidadesReinicio(@Param("numSocio") int numSocio);
+
 
 
 

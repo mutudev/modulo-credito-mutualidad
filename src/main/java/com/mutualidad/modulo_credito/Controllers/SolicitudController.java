@@ -688,6 +688,8 @@ public class SolicitudController  implements Initializable {
         lblError2.setVisible(false);
         lblAvalAplica.setVisible(false);
         cmbAvalAplica.setVisible(false);
+        limpiarDatosAval();
+
 
     }
 
@@ -798,6 +800,7 @@ public class SolicitudController  implements Initializable {
         txtNomAval.setEditable(true);
         txtNumAval.setEditable(true);
         txtDireccionAval.setText("");
+        tblAvales.getItems().clear();
     }
 
     @FXML
@@ -1084,6 +1087,19 @@ public class SolicitudController  implements Initializable {
         BigDecimal iva = BigDecimal.valueOf(parsePorcentaje(txtIva.getText()));
         BigDecimal gradualidad = BigDecimal.valueOf(0);
 
+        if(cmbTipo.getSelectionModel().getSelectedItem().toString().equals("CREDITO PACSE")){
+
+            if(!cmbOpcionAval.getSelectionModel().getSelectedItem().toString().equals("AVAL CON PROPIEDAD > $10,000.00" )){
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("ERROR AL INTENTAR GUARDAR LA SOLICITUD");
+                alert.setHeaderText("ERROR AL INTENTAR GUARDAR LA SOLICITUD");
+                alert.setContentText(
+                        "LOS CREDITOS PACSE DEBERÁN CONTAR CON GARANTÍA DE PROPIEDAD, MODIFIQUE EL TIPO DE AVAL.");
+                alert.showAndWait();
+                return;
+            }
+        }
+
         if(cmbAvalAplica.getSelectionModel().getSelectedItem().toString().equals("AVAL CON PROPIEDAD > $10,000.00") ){
 
             Set<String> nombresAvales = tblAvales.getItems()
@@ -1127,6 +1143,7 @@ public class SolicitudController  implements Initializable {
                 : "";
 
         if (isRiesgo) {
+
 
             for (int i = 0; i < tblAvales.getItems().size(); i++) {
                 JSONObject obj = new JSONObject();

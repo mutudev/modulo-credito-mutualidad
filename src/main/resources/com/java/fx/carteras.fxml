@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.CarterasController">
+   <children>
+      <Label layoutX="34.0" layoutY="28.0" text="Carteras de Crédito" textFill="#39577c">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="225.0" layoutY="172.0" text="Empresa: ">
+         <font>
+            <Font name="System Bold" size="22.0" />
+         </font>
+      </Label>
+      <Label layoutX="240.0" layoutY="252.0" prefHeight="32.0" prefWidth="85.0" text="Estado: ">
+         <font>
+            <Font name="System Bold" size="22.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="cmbEmpresas" layoutX="343.0" layoutY="172.0" prefHeight="39.0" prefWidth="358.0" />
+      <ComboBox fx:id="cmbEstado" layoutX="343.0" layoutY="252.0" prefHeight="39.0" prefWidth="358.0" />
+      <Button fx:id="btnGenerar" layoutX="409.0" layoutY="339.0" mnemonicParsing="false" onAction="#traerRegistros" style="-fx-background-color: #185754;" text="GENERAR CARTERA" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <TableView fx:id="tblCarteras" layoutX="14.0" layoutY="425.0" prefHeight="92.0" prefWidth="969.0" visible="false">
+        <columns>
+          <TableColumn fx:id="colID" prefWidth="57.0" text="IdCredito" />
+          <TableColumn fx:id="colEmpresa" prefWidth="58.0" text="empresa" />
+            <TableColumn fx:id="colSocio" prefWidth="66.0" text="num_socio" />
+            <TableColumn fx:id="colNombre" prefWidth="66.0" text="nombre_socio" />
+            <TableColumn fx:id="colDesembolso" minWidth="9.0" prefWidth="75.0" text="fecha_desembolso" />
+            <TableColumn fx:id="colMonto" text="monto_desembolso" />
+            <TableColumn fx:id="colCuotaPen" prefWidth="75.0" text="fecha_cuota_pendiente" />
+            <TableColumn fx:id="colCuotas" minWidth="2.0" prefWidth="56.0" text="cuotas" />
+            <TableColumn fx:id="colTasa" prefWidth="182.0" text="tasa" />
+            <TableColumn fx:id="colSaldo" minWidth="0.0" prefWidth="173.0" text="saldo_credito" />
+            <TableColumn fx:id="colUltimaPago" text="fecha_ultima_pago" />
+        </columns>
+      </TableView>
+   </children>
+</Pane>
