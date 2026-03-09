@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.view.JasperViewer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +42,15 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -68,6 +72,30 @@ public class ReimpresionContratosController implements Initializable {
 
     @FXML
     private Label lblBusquedaFolio, lblNumYFolio;
+
+    @FXML
+    private TableView<Map<String, String>>tblProyeccion;
+
+    @FXML
+    private TableColumn<Map<String, String>, String> colCuota;
+
+    @FXML
+    private TableColumn<Map<String, String>, String> colFechaPro;
+
+    @FXML
+    private TableColumn<Map<String, String>, String>  colCapital;
+
+    @FXML
+    private TableColumn<Map<String, String>, String>  colIntereses;
+
+    @FXML
+    private TableColumn<Map<String, String>, String>  colIVA;
+
+    @FXML
+    private TableColumn<Map<String, String>, String>  colTotal;
+
+    @FXML
+    private TableColumn<Map<String, String>, String>  colSaldo;
 
     @FXML
     private TableView<ModelCredito> tblCreditos;
@@ -137,6 +165,34 @@ public class ReimpresionContratosController implements Initializable {
                 })
         );
 
+        colCapital.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("capital"))
+        );
+
+        colCuota.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("cuota"))
+        );
+
+
+        colFechaPro.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("fecha"))
+        );
+
+        colIVA.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("iva"))
+        );
+
+        colIntereses.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("intereses"))
+        );
+
+        colTotal.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("total"))
+        );
+        colSaldo.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().get("saldo"))
+        );
+
 
         rellenarCombo();
     }
@@ -187,9 +243,6 @@ public class ReimpresionContratosController implements Initializable {
 
         data = FXCollections.observableArrayList(creditos);
         tblCreditos.setItems(data);
-
-
-
     }
 
     @FXML
@@ -419,6 +472,121 @@ public class ReimpresionContratosController implements Initializable {
         new Thread(task).start();
     }
 
+    public void cargarProyeccion() {
+
+        tblProyeccion.getItems().clear();
+
+        //Obtener las cosas del crédito
+        int indexSeleccionado = tblCreditos.getSelectionModel().getSelectedIndex();
+        ModelCredito primeraFila = (ModelCredito) tblCreditos.getItems().get(indexSeleccionado);
+        ModelCredito credito = servicio.encontrarCredito(primeraFila.getId());
+
+        BigDecimal monto = BigDecimal.valueOf(
+                credito.getMonto()
+        );
+
+        int plazo = credito.getPlazo();
+
+        BigDecimal tasa = credito.getTasa().divide(BigDecimal.valueOf(100.0));
+
+
+        BigDecimal iva = BigDecimal.valueOf(credito.getIva()).divide(BigDecimal.valueOf(100.0));
+
+        BigDecimal capitalMensual = monto
+                .divide(BigDecimal.valueOf(plazo), 2, RoundingMode.HALF_UP);
+
+        BigDecimal capitalMensualAmortizado = monto
+                .subtract(capitalMensual.multiply(BigDecimal.valueOf(plazo - 1)))
+                .setScale(2, RoundingMode.HALF_UP);
+
+
+
+        LocalDate fechaBase = credito.getFd();
+        int diaOriginal = fechaBase.getDayOfMonth();
+
+        boolean huboAjusteAnterior = false;
+
+        int numCuota = 1;
+        int i = plazo;
+
+        BigDecimal saldo = monto;
+
+        while (i != 0) {
+
+            boolean ajusteDomingo = false;
+
+            LocalDate fechaTentativa = fechaBase.plusMonths(1);
+            LocalDate fechaPago;
+
+            int ultimoDiaMes = fechaTentativa.lengthOfMonth();
+
+            fechaPago = (diaOriginal > ultimoDiaMes)
+                    ? fechaTentativa.withDayOfMonth(ultimoDiaMes)
+                    : fechaTentativa.withDayOfMonth(diaOriginal);
+
+            int mesPago = fechaPago.getMonthValue();
+            int anioPago = fechaPago.getYear();
+
+            int dias = (mesPago == 1)
+                    ? YearMonth.of(anioPago - 1, 12).lengthOfMonth()
+                    : YearMonth.of(anioPago, mesPago - 1).lengthOfMonth();
+
+            if (huboAjusteAnterior) {
+                dias--;
+                huboAjusteAnterior = false;
+            }
+
+            if (fechaPago.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                fechaPago = fechaPago.plusDays(1);
+                ajusteDomingo = true;
+                huboAjusteAnterior = true;
+            }
+
+            if (ajusteDomingo) {
+                dias++;
+            }
+
+            // ===== INTERÉS =====
+            BigDecimal interes = tasa
+                    .multiply(BigDecimal.valueOf(12))
+                    .divide(BigDecimal.valueOf(360), 10, RoundingMode.HALF_UP)
+                    .multiply(saldo)
+                    .multiply(BigDecimal.valueOf(dias))
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            BigDecimal ivaInteres = interes
+                    .multiply(iva)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            BigDecimal capital = (i > 1)
+                    ? capitalMensual
+                    : capitalMensualAmortizado;
+
+            BigDecimal total = capital
+                    .add(interes)
+                    .add(ivaInteres);
+
+            saldo = saldo.subtract(capital);
+            String fechaFormateada = fechaPago.getDayOfMonth() + "/" + fechaPago.getMonthValue() + "/" + fechaPago.getYear();
+
+            Map<String, String> fila = Map.of(
+                    "cuota", String.valueOf(numCuota),
+                    "fecha", fechaFormateada.toString(),
+                    "capital", formatoMXN.format(capital),
+                    "intereses", formatoMXN.format(interes),
+                    "iva", formatoMXN.format(ivaInteres),
+                    "total", formatoMXN.format(total),
+                    "saldo", formatoMXN.format(saldo.max(BigDecimal.ZERO))
+            );
+
+            tblProyeccion.getItems().add(fila);
+
+            fechaBase = fechaPago;
+            numCuota++;
+            i--;
+        }
+    }
+
     @FXML
     public void mostrarTablaAmortizacion() {
 
@@ -483,6 +651,25 @@ public class ReimpresionContratosController implements Initializable {
                         estado = "PAGADO";
                     }
 
+                    cargarProyeccion();
+
+                    ObservableList<Map<String, String>> items = tblProyeccion.getItems();
+                    Collection<Map<String, ?>> datosTabla = new ArrayList<>();
+
+                    for (Map<String, String> item : items) {
+                        Map<String, Object> fila = new HashMap<>();
+                        fila.put("cuota", item.get("cuota"));
+                        fila.put("fecha", item.get("fecha"));
+                        fila.put("capital", item.get("capital"));
+                        fila.put("intereses", item.get("intereses"));
+                        fila.put("iva", item.get("iva"));
+                        fila.put("total", item.get("total"));
+                        fila.put("saldo", item.get("saldo"));
+                        datosTabla.add(fila);
+                    }
+
+                    JRMapCollectionDataSource dataSource = new JRMapCollectionDataSource(datosTabla);
+
                     LocalDate fecha = LocalDate.now();
                     Map pars = new HashMap<>();
                     pars.put("CreditoID", credito.getId());
@@ -496,25 +683,27 @@ public class ReimpresionContratosController implements Initializable {
                     pars.put("estado", estado);
                     pars.put("tipoCredito", tipo);
                     pars.put("empresaEmisora", empresa);
+                    pars.put("dataSource", dataSource);
 
-                    InputStream isRepo = getClass().getResourceAsStream("/Reports/tabla_amortizacion.jasper");
+
+                    InputStream isRepo = getClass().getResourceAsStream("/Reports/tabla_amortizacion_hist.jasper");
                     JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-                    Connection conn = DriverManager.getConnection(
-                            dotenv.get("DATABASE_URL"),
-                            dotenv.get("DATABASE_USERNAME"),
-                            dotenv.get("DATABASE_PASSWORD")
-                    );
-                    JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
 
-                    // Mostrar el visor en el hilo de JavaFX
+                    JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
+
+
+
                     Platform.runLater(() -> {
                         JasperViewer viewer = new JasperViewer(jpRepo, false);
-                        viewer.setSize(800, 600);
                         viewer.setAlwaysOnTop(true);
+                        viewer.setSize(800, 600);
                         viewer.setLocationRelativeTo(null);
                         viewer.setTitle("PLAN DE PAGOS");
                         viewer.setVisible(true);
                     });
+
+
+
 
                 } catch (Exception e) {
                     e.printStackTrace();

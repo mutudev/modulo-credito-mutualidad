@@ -36,6 +36,9 @@ public class Servicio {
     @Autowired
     private CreditoRepository repoCredito;
 
+    @Autowired
+    private AhorroRepository repoAhorro;
+
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -44,6 +47,11 @@ public class Servicio {
     @Transactional
     public HashMap validarLogin(String usuario, String password, String resultado, int rol) {
         return repoUsuario.pa_validarLogin(usuario, password, resultado, rol);
+    }
+
+
+    public List<Object[]> obtenerHistorialPagos(int creditoId) {
+        return repoCredito.pa_historialCreditos(creditoId);
     }
 
 
@@ -242,6 +250,16 @@ public class Servicio {
         return repoCredito.findBySocioAndEmpresa(socio, empresa);
     }
 
+    public List<ModelCredito> obtenerParaEstadoDeCuenta(int socio, String empresa, int status) {
+        return repoCredito.findBySocioAndEmpresaAndStatus(socio, empresa, status);
+    }
+
+    public double chequeoSaldo( int numCredito) {
+        return repoCredito.chequeoSaldo(numCredito);
+    }
+
+
+
     public  ModelEmpresa obtenerEmpresaXNombre( String nombre){
         return repoEmpresa.findByNombre(nombre);
     }
@@ -322,6 +340,7 @@ public class Servicio {
 
     public List<Object[]> traerIdsAvales() {return repoSocio.traerIdsAvales();}
 
+    public ModelAhorro traerAhorro(int numero) {return repoAhorro.findBySocio(numero);}
 
     public List<Object[]> traerDatosSolicitudPendiente(int id) {return repoSolicitud.traerSolicitudPendiente(id);}
 

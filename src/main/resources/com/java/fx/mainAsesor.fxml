@@ -116,7 +116,7 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Label>
-            <Label fx:id="lblHistorialPagos" alignment="CENTER" layoutX="1.0" layoutY="380.0" onMouseClicked="#calcularProyeccion" prefHeight="27.0" prefWidth="231.0" text="HISTORIAL DE PAGOS" textFill="WHITE" underline="true">
+            <Label fx:id="lblHistorialPagos" alignment="CENTER" layoutX="1.0" layoutY="380.0" onMouseClicked="#historialPagos" prefHeight="27.0" prefWidth="231.0" text="HISTORIAL DE PAGOS" textFill="WHITE" underline="true">
                <font>
                   <Font name="System Bold" size="17.0" />
                </font>
@@ -124,7 +124,7 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Label>
-            <Label fx:id="lblEstadoCuenta" alignment="CENTER" layoutX="1.0" layoutY="425.0" onMouseClicked="#calcularProyeccion" prefHeight="27.0" prefWidth="231.0" text="ESTADO DE CUENTA" textFill="WHITE" underline="true">
+            <Label fx:id="lblEstadoCuenta" alignment="CENTER" layoutX="1.0" layoutY="425.0" onMouseClicked="#estadoCuenta" prefHeight="27.0" prefWidth="231.0" text="ESTADO DE CUENTA" textFill="WHITE" underline="true">
                <font>
                   <Font name="System Bold" size="17.0" />
                </font>

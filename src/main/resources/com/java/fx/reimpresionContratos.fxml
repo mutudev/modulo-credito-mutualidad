@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
 
-<Pane onKeyPressed="#habilitarFolio" prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.ReimpresionContratosController">
+<Pane onKeyPressed="#habilitarFolio" prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.ReimpresionContratosController">
    <children>
       <Label layoutX="34.0" layoutY="28.0" text="Reimpresión de Contratos" textFill="#39577c">
          <font>
@@ -38,7 +44,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <TableView fx:id="tblCreditos" layoutX="34.0" layoutY="205.0" prefHeight="206.0" prefWidth="931.0">
+      <TableView fx:id="tblCreditos" layoutX="34.0" layoutY="205.0" prefHeight="206.0" prefWidth="873.0">
         <columns>
           <TableColumn fx:id="colFolio" prefWidth="178.0" text="FOLIO" />
           <TableColumn fx:id="colMonto" prefWidth="229.0" text="MONTO" />
@@ -65,7 +71,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="btnPagare" layoutX="452.0" layoutY="500.0" mnemonicParsing="false" onAction="#mostrarPagare" prefHeight="39.0" prefWidth="159.0" style="-fx-background-color: #5fde64;" text="Pagaré">
+      <Button fx:id="btnPagare" layoutX="394.0" layoutY="500.0" mnemonicParsing="false" onAction="#mostrarPagare" prefHeight="39.0" prefWidth="159.0" style="-fx-background-color: #5fde64;" text="Pagaré">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
@@ -80,7 +86,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="btnPlan" layoutX="623.0" layoutY="499.0" mnemonicParsing="false" onAction="#mostrarTablaAmortizacion" prefHeight="39.0" prefWidth="172.0" style="-fx-background-color: #e6c535;" text="Plan de Pagos">
+      <Button fx:id="btnPlan" layoutX="565.0" layoutY="499.0" mnemonicParsing="false" onAction="#mostrarTablaAmortizacion" prefHeight="39.0" prefWidth="172.0" style="-fx-background-color: #e6c535;" text="Plan de Pagos">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
@@ -95,7 +101,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="btnContrarto" layoutX="804.0" layoutY="498.0" mnemonicParsing="false" onAction="#mostrarContrato" prefHeight="39.0" prefWidth="165.0" style="-fx-background-color: #ff8a05;" text="Contrato">
+      <Button fx:id="btnContrarto" layoutX="746.0" layoutY="498.0" mnemonicParsing="false" onAction="#mostrarContrato" prefHeight="39.0" prefWidth="165.0" style="-fx-background-color: #ff8a05;" text="Contrato">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
@@ -110,5 +116,19 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
+      <TableView fx:id="tblProyeccion" layoutX="234.0" layoutY="22.0" prefHeight="238.0" prefWidth="740.0" visible="false">
+         <columns>
+            <TableColumn fx:id="colCuota" prefWidth="93.0" text="CUOTA" />
+            <TableColumn fx:id="colFechaPro" prefWidth="117.0" text="FECHA" />
+            <TableColumn fx:id="colCapital" prefWidth="123.0" text="CAPITAL" />
+            <TableColumn fx:id="colIntereses" prefWidth="130.0" text="INTERESES" />
+            <TableColumn fx:id="colIVA" prefWidth="107.0" text="IVA" />
+            <TableColumn fx:id="colTotal" prefWidth="130.0" text="TOTAL" />
+            <TableColumn fx:id="colSaldo" prefWidth="123.0" text="SALDO" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
    </children>
 </Pane>

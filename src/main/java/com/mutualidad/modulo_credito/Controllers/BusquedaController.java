@@ -48,6 +48,10 @@ public class BusquedaController implements Initializable {
 
   public GradualidadController gradualidadController;
 
+  public EstadoCuentaController estadoCuentaController;
+
+  public HistorialController historialController;
+
   public int ventana;
 
   @Override
@@ -100,19 +104,40 @@ public class BusquedaController implements Initializable {
     this.ventana = ventana;
     this.reimpresionContratosController = null;
     this.gradualidadController = null;
+    this.estadoCuentaController = null;
   }
 
   public void setReimpresionController(ReimpresionContratosController controller) {
     this.reimpresionContratosController = controller;
     this.solicitudController = null;
     this.gradualidadController = null;
+    this.estadoCuentaController = null;
   }
 
   public void setGradualidadController(GradualidadController controller) {
     this.gradualidadController = controller;
     this.solicitudController = null;
     this.reimpresionContratosController = null;
+    this.estadoCuentaController = null;
   }
+
+  public void setEstadoCuentaController(EstadoCuentaController controller) {
+    this.estadoCuentaController = controller;
+    this.gradualidadController = null;
+    this.reimpresionContratosController = null;
+    this.solicitudController = null;
+  }
+
+  public void setHistorialController(HistorialController controller) {
+    this.historialController = controller;
+    this.reimpresionContratosController = null;
+    this.gradualidadController = null;
+    this.estadoCuentaController = null;
+    this.solicitudController = null;
+  }
+
+
+
 
   @FXML
   public void cerrarModal(KeyEvent event) {
@@ -157,6 +182,14 @@ public class BusquedaController implements Initializable {
 
         if (gradualidadController != null) {
           gradualidadController.cargarSocioBuscado(numSocio);
+        }
+
+        if (estadoCuentaController != null) {
+          estadoCuentaController.cargarSocioBuscado(numSocio, nombre);
+        }
+
+        if (historialController != null) {
+          historialController.cargarSocioBuscado(numSocio);
         }
 
 

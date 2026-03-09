@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
 
-<Pane prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.ListadoSolicitudesController">
+<Pane prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.ListadoSolicitudesController">
    <children>
-      <Label alignment="CENTER" layoutY="28.0" prefHeight="27.0" prefWidth="998.0" text="Listado de Solicitudes Pendientes" textFill="#39577c">
+      <Label alignment="CENTER" layoutY="28.0" prefHeight="35.0" prefWidth="924.0" text="Listado de Solicitudes Pendientes" textFill="#39577c">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
-      <TableView fx:id="tblSolicitudes" layoutX="37.0" layoutY="85.0" prefHeight="445.0" prefWidth="924.0">
+      <TableView fx:id="tblSolicitudes" layoutX="19.0" layoutY="85.0" prefHeight="445.0" prefWidth="924.0">
         <columns>
           <TableColumn fx:id="colFolio" prefWidth="104.0" text="FOLIO" />
           <TableColumn fx:id="colNumSocio" prefWidth="173.0" text="NÚMERO DE SOCIO" />

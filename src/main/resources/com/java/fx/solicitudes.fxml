@@ -374,7 +374,7 @@
                               <Cursor fx:constant="HAND" />
                            </cursor>
                         </Button>
-                        <Button fx:id="btnQuitar2" layoutX="780.0" layoutY="457.0" mnemonicParsing="false" onAction="#quitarPropietario" style="-fx-background-color: #ff0000;" text="Eliminar Propietario" textFill="WHITE">
+                        <Button fx:id="btnQuitar2" layoutX="752.0" layoutY="457.0" mnemonicParsing="false" onAction="#quitarPropietario" style="-fx-background-color: #ff0000;" text="Eliminar Propietario" textFill="WHITE">
                            <font>
                               <Font name="System Bold" size="18.0" />
                            </font>
@@ -417,7 +417,7 @@
                               <Font name="System Bold" size="18.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="txtNomSocio3" layoutX="495.0" layoutY="15.0" prefHeight="39.0" prefWidth="478.0" />
+                        <TextField fx:id="txtNomSocio3" layoutX="495.0" layoutY="15.0" prefHeight="39.0" prefWidth="450.0" />
                         <TextField fx:id="txtAhorrosConf" layoutX="173.0" layoutY="68.0" prefHeight="39.0" prefWidth="156.0" />
                         <Label fx:id="lblNumero12" layoutX="26.0" layoutY="74.0" text="Ahorros Totales:">
                            <font>
@@ -477,7 +477,7 @@
                               <Font name="System Bold" size="18.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="txtTipoConf" layoutX="495.0" layoutY="232.0" prefHeight="39.0" prefWidth="478.0" />
+                        <TextField fx:id="txtTipoConf" layoutX="495.0" layoutY="232.0" prefHeight="39.0" prefWidth="450.0" />
                         <Label fx:id="lblNumero12111122" layoutX="8.0" layoutY="289.0" text="Crédito con avales:">
                            <font>
                               <Font name="System Bold" size="18.0" />
@@ -489,7 +489,7 @@
                               <Font name="System Bold" size="18.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="txtTipoRiesgoConf" layoutX="495.0" layoutY="283.0" prefHeight="39.0" prefWidth="478.0" />
+                        <TextField fx:id="txtTipoRiesgoConf" layoutX="495.0" layoutY="283.0" prefHeight="39.0" prefWidth="451.0" />
                         <Label fx:id="lblNumero121111221" layoutX="117.0" layoutY="338.0" text="Plazo:">
                            <font>
                               <Font name="System Bold" size="18.0" />

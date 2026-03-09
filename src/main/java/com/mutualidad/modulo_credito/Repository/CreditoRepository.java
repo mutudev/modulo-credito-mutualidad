@@ -34,6 +34,18 @@ public interface CreditoRepository extends JpaRepository<ModelCredito, Integer> 
     @Query(value = "SELECT TOP 1 * FROM VW_HISTORIAL_CREDITO_GRADUALIDAD WHERE SOCIO = :numSocio ORDER BY CREDITO_ID DESC", nativeQuery = true)
     List<Object[]> chequeoGradualidadesReinicio(@Param("numSocio") int numSocio);
 
+    List<ModelCredito> findBySocioAndEmpresaAndStatus(int socio, String empresa, int status);
+
+    @Query(value = "SELECT * FROM VW_TRANSACCION_DETALLE WHERE CREDITO_AFECTADO = :CreditoId", nativeQuery = true)
+    List<Object[]> pa_historialCreditos(@Param("CreditoId") int CreditoId);
+
+
+    @Query(value = "  SELECT TOP 1 SALDO_CREDITO \n" +
+            "FROM TRANSACCION \n" +
+            "WHERE CREDITO_AFECTADO = :numCredito \n" +
+            "ORDER BY SALDO_CREDITO ASC", nativeQuery = true)
+    double chequeoSaldo(@Param("numCredito") int numCredito);
+
 
 
 

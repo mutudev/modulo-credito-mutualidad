@@ -241,6 +241,7 @@ public class SolicitudController  implements Initializable {
             return;
         }
 
+
         try {
             cambiandoTab = true;
             if (txtNumSocio.getText().isEmpty()) {
@@ -300,6 +301,8 @@ public class SolicitudController  implements Initializable {
                             alert.setContentText(
                                     "POR FAVOR, COMPLETE LA SOLICITUD");
                             alert.showAndWait();
+                            regresarDatosCredito();
+                            return;
                         }
                     }else{
 
@@ -312,6 +315,8 @@ public class SolicitudController  implements Initializable {
                             alert.setContentText(
                                     "POR FAVOR, COMPLETE LA SOLICITUD");
                             alert.showAndWait();
+                            regresarDatosCredito();
+                            return;
                         }
 
                     }
@@ -326,6 +331,8 @@ public class SolicitudController  implements Initializable {
                         alert.setContentText(
                                 "POR FAVOR, COMPLETE LA SOLICITUD");
                         alert.showAndWait();
+                        regresarDatosCredito();
+                        return;
                     }
                 }
                 tabPane.getSelectionModel().select(4);

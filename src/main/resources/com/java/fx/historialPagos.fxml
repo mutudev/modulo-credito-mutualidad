@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane onKeyPressed="#habilitarFolio" prefHeight="574.0" prefWidth="998.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mutualidad.modulo_credito.Controllers.HistorialController">
+   <children>
+      <Label layoutX="44.0" layoutY="38.0" text="Historial de Pagos" textFill="#39577c">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblNumYFolio" alignment="CENTER_RIGHT" layoutX="30.0" layoutY="99.0" prefHeight="27.0" prefWidth="165.0" text="Número de Socio:" textAlignment="RIGHT">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtNumSocio" layoutX="206.0" layoutY="93.0" onAction="#cargarConTecla" prefHeight="39.0" prefWidth="170.0" promptText="Ej. 100" />
+      <Label layoutX="120.0" layoutY="151.0" text="Empresa:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="cmbEmpresa" layoutX="206.0" layoutY="145.0" onAction="#cargarAlCambiarCombo" prefHeight="39.0" prefWidth="359.0" visibleRowCount="5" />
+      <Label fx:id="lblBusquedaFolio" layoutX="621.0" layoutY="99.0" opacity="0.48" prefHeight="27.0" prefWidth="327.0" text="[F3] Buscar Por Folio">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnBuscar" layoutX="385.0" layoutY="93.0" mnemonicParsing="false" onAction="#cargarCreditos" style="-fx-background-color: #185754;" text="Buscar" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Button fx:id="btnLimpiar" layoutX="474.0" layoutY="93.0" mnemonicParsing="false" onAction="#limpiarDatos" style="-fx-background-color: #212691;" text="Limpiar" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <TableView fx:id="tblCreditos" layoutX="34.0" layoutY="225.0" prefHeight="206.0" prefWidth="891.0">
+         <columns>
+            <TableColumn fx:id="colFolio" prefWidth="178.0" text="FOLIO" />
+            <TableColumn fx:id="colMonto" prefWidth="229.0" text="MONTO" />
+            <TableColumn fx:id="colEstado" prefWidth="213.0" text="ESTADO" />
+            <TableColumn fx:id="colFecha" prefWidth="309.0" text="FECHA DE DESEMBOLSO" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+      <Button fx:id="btnImprimir" layoutX="827.0" layoutY="443.0" mnemonicParsing="false" onAction="#cargarHistorial" style="-fx-background-color: #212691;" text="Imprimir" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <ImageView fx:id="imgBusqueda" fitHeight="30.0" fitWidth="26.0" layoutX="573.0" layoutY="98.0" onMouseClicked="#buscarSocioPorNombre" pickOnBounds="true" preserveRatio="true">
+          <image>
+              <Image url="@/assets/images/icono-busqueda.png" />
+          </image>
+          <cursor>
+              <Cursor fx:constant="HAND" />
+          </cursor>
+      </ImageView>
+      <TableView fx:id="tblHistorial" layoutX="34.0" layoutY="450.0" prefHeight="82.0" prefWidth="743.0" visible="false">
+        <columns>
+          <TableColumn fx:id="colFechaPHist" prefWidth="75.0" text="FECHA_PAGO" />
+          <TableColumn fx:id="colFechaVenHist" prefWidth="75.0" text="FECHA_VENCIMIENTO" />
+            <TableColumn fx:id="colCuotaHist" prefWidth="75.0" text="CUOTA" />
+            <TableColumn fx:id="colCapHist" prefWidth="75.0" text="CAPITAL_PAGADO" />
+            <TableColumn fx:id="colInterHist" prefWidth="75.0" text="INTERESES" />
+            <TableColumn fx:id="colIvaHist" prefWidth="75.0" text="IVA" />
+            <TableColumn fx:id="colMoraHist" prefWidth="75.0" text="MORA" />
+            <TableColumn fx:id="colTotalHist" prefWidth="75.0" text="TOTAL_PAGADO" />
+            <TableColumn fx:id="colSaldoHist" prefWidth="75.0" text="SALDO_CREDITO" />
+            <TableColumn fx:id="colIDHist" prefWidth="75.0" text="ID_OPERACION" />
+        </columns>
+      </TableView>
+
+   </children>
+</AnchorPane>
