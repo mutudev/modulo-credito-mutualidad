@@ -40,11 +40,11 @@ public interface CreditoRepository extends JpaRepository<ModelCredito, Integer> 
     List<Object[]> pa_historialCreditos(@Param("CreditoId") int CreditoId);
 
 
-    @Query(value = "  SELECT TOP 1 SALDO_CREDITO \n" +
+    @Query(value = "SELECT TOP 1 SALDO_CREDITO \n" +
             "FROM TRANSACCION \n" +
             "WHERE CREDITO_AFECTADO = :numCredito \n" +
             "ORDER BY SALDO_CREDITO ASC", nativeQuery = true)
-    double chequeoSaldo(@Param("numCredito") int numCredito);
+    Double chequeoSaldo(@Param("numCredito") int numCredito);
 
 
 

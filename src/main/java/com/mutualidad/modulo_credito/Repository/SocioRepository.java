@@ -60,7 +60,7 @@ public interface SocioRepository extends JpaRepository<ModelSocio, Integer> {
     @Query(value = "SELECT * FROM CAT_TIPO_RIESGO", nativeQuery = true)
     List<Object[]> traerTiposRiesgo();
 
-    @Query(value = "SELECT (PRIMER_NOM + ' ' + SEGUNDO_NOM + ' ' + APELLIDO_P + ' ' + APELLIDO_M) AS NOMBRE FROM SOCIO WHERE NUM_SOCIO = :numSocio", nativeQuery = true)
+    @Query(value = "SELECT (NOMBRES + ' ' + APELLIDO_P + ' ' + APELLIDO_M) AS NOMBRE FROM SOCIO WHERE NUM_SOCIO = :numSocio", nativeQuery = true)
     String traerNombreSocio(@Param("numSocio") int numSocio);
 
     @Query(

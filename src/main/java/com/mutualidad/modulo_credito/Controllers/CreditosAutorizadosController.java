@@ -135,8 +135,8 @@ public class CreditosAutorizadosController implements Initializable {
         );
 
 
-        dpFechainicio.setValue(LocalDate.now());
-        dpFechafinal.setValue(LocalDate.now());
+        dpFechainicio.setValue(servicio.traerFechaHoy());
+        dpFechafinal.setValue(servicio.traerFechaHoy());
 
         List<ModelEmpresa> empresas = servicio.traerCatalogoEmpresas();
 
@@ -155,7 +155,6 @@ public class CreditosAutorizadosController implements Initializable {
 
         LocalDate fechainicio = dpFechainicio.getValue();
         LocalDate fechafin = dpFechafinal.getValue();
-        System.out.println(fechafin);
         if (cmbEmpresa.getSelectionModel().getSelectedItem().toString().equalsIgnoreCase("AMBAS")) {
             codEmpresa = "0000";
         } else {
@@ -172,7 +171,6 @@ public class CreditosAutorizadosController implements Initializable {
         loadingStage.initModality(Modality.APPLICATION_MODAL);
         loadingStage.initStyle(StageStyle.UNDECORATED);
         loadingStage.setAlwaysOnTop(true);
-
 
         VBox loadingPane = new VBox(20);
         loadingPane.setAlignment(Pos.CENTER);
@@ -274,7 +272,7 @@ public class CreditosAutorizadosController implements Initializable {
                     String totalFormateado = formatoMXN.format(totalDesembolsado);
                     Map<String, Object> parametros = new HashMap<>();
 
-                    String fechaImp = formatter.format(LocalDate.now());
+                    String fechaImp = formatter.format(servicio.traerFechaHoy());
                     parametros.put("titulo", titulo);
                     parametros.put("fechaImpre", fechaImp);
                     parametros.put("empresaEmisora", empresaEmisora);

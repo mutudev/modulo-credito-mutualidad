@@ -51,7 +51,12 @@
 			<artifactId>mssql-jdbc</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>de.mkammerer</groupId>
+			<artifactId>argon2-jvm</artifactId>
+			<version>2.12</version>
+			<scope>compile</scope>
+		</dependency>
 		<!-- JavaFX -->
 		<dependency>
 			<groupId>org.openjfx</groupId>

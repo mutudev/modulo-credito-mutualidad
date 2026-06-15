@@ -86,14 +86,6 @@
                               <Cursor fx:constant="HAND" />
                            </cursor>
                         </Button>
-                        <Button fx:id="btnContinuar1" layoutX="14.0" layoutY="457.0" mnemonicParsing="false" onAction="#continuarDatosCredito" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #185754;" text="Continuar &gt;&gt;" textFill="WHITE" visible="false">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
                         <Label fx:id="lblEmpresa" layoutX="88.0" layoutY="345.0" text="Empresa:" visible="false">
                            <font>
                               <Font name="System Bold" size="18.0" />
@@ -132,12 +124,12 @@
                               <Font name="System Bold" size="18.0" />
                            </font>
                         </Label>
-                        <Label layoutX="438.0" layoutY="87.0" text="Tipo de Crédito:">
+                        <Label fx:id="lblTipo" layoutX="438.0" layoutY="87.0" text="Tipo de Crédito:" visible="false">
                            <font>
                               <Font name="System Bold" size="18.0" />
                            </font>
                         </Label>
-                        <ComboBox fx:id="cmbTipo" layoutX="585.0" layoutY="81.0" prefHeight="39.0" prefWidth="350.0" />
+                        <ComboBox fx:id="cmbTipo" layoutX="585.0" layoutY="81.0" onAction="#modificarParametrosCredito" prefHeight="39.0" prefWidth="350.0" visible="false" />
                         <ComboBox fx:id="cmbTasa" layoutX="174.0" layoutY="144.0" onAction="#ocultarAvalAplica" prefHeight="39.0" prefWidth="248.0" visible="false" />
                         <Button fx:id="btnCargar2" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#cargarDatosCredito" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #185754;" text="Cargar Opciones" textFill="WHITE">
                            <font>
@@ -167,22 +159,6 @@
                            </font>
                         </Label>
                         <ComboBox fx:id="cmbGradualidad" layoutX="585.0" layoutY="144.0" prefHeight="39.0" prefWidth="248.0" visible="false" />
-                        <Button layoutX="14.0" layoutY="457.0" mnemonicParsing="false" onAction="#regresarDatosGenerales" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #212691;" text="&lt;&lt; Regresar" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
-                        <Button layoutX="191.0" layoutY="457.0" mnemonicParsing="false" onAction="#continuarAgregadoAvales" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #185754;" text="Continuar &gt;&gt;" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
                         <Label fx:id="lblIva" layoutX="131.0" layoutY="274.0" text="IVA:" visible="false">
                            <font>
                               <Font name="System Bold" size="18.0" />
@@ -237,22 +213,6 @@
                               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                            </columnResizePolicy>
                         </TableView>
-                        <Button layoutX="191.0" layoutY="457.0" mnemonicParsing="false" onAction="#continuarConfirmacion" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #185754;" text="Continuar &gt;&gt;" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
-                        <Button layoutX="14.0" layoutY="457.0" mnemonicParsing="false" onAction="#regresarDatosCredito" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #212691;" text="&lt;&lt; Regresar" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
                         <ComboBox fx:id="cmbOpcionAval" layoutX="172.0" layoutY="14.0" onAction="#ocultarAvalSocio" prefWidth="150.0" />
                         <TextField fx:id="txtNumAval" layoutX="489.0" layoutY="14.0" onAction="#CargarAvalConBoton" prefHeight="39.0" prefWidth="238.0" promptText="Ej. 100" />
                         <TextField fx:id="txtNomAval" layoutX="184.0" layoutY="73.0" prefHeight="39.0" prefWidth="589.0" />
@@ -391,14 +351,6 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <Button layoutX="770.0" layoutY="457.0" mnemonicParsing="false" onAction="#guardarSolicitud" prefHeight="39.0" prefWidth="191.0" style="-fx-background-color: #185754;" text="Confirmar Solicitud" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold" size="18.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </Button>
-                        <Button layoutX="14.0" layoutY="457.0" mnemonicParsing="false" onAction="#regresarAgregadoAvales" prefHeight="39.0" prefWidth="168.0" style="-fx-background-color: #212691;" text="&lt;&lt; Regresar" textFill="WHITE">
                            <font>
                               <Font name="System Bold" size="18.0" />
                            </font>

@@ -6,17 +6,26 @@ import com.mutualidad.modulo_credito.Models.ModelSocio;
 import com.mutualidad.modulo_credito.Services.Servicio;
 import com.tenpisoft.n2w.MoneyConverters;
 import io.github.cdimascio.dotenv.Dotenv;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -35,6 +44,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -150,11 +160,34 @@ public class GradualidadController implements Initializable {
         cargarCreditos();
     }
 
-
     @FXML
     public void generarReporte() {
 
-        if(txtNomSocio.getText().trim().equals("")){
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.setAlwaysOnTop(true);
+
+        VBox loadingPane = new VBox(20);
+        loadingPane.setAlignment(Pos.CENTER);
+        loadingPane.setPadding(new Insets(30));
+        loadingPane.setStyle("-fx-background-color: white; -fx-border-color: #185754; -fx-border-width: 2;");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(80, 80);
+
+        Label loadingLabel = new Label("Generando reporte...");
+        loadingLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        loadingLabel.setTextFill(Color.web("#39577c"));
+
+        loadingPane.getChildren().addAll(progressIndicator, loadingLabel);
+
+        Scene loadingScene = new Scene(loadingPane, 400, 180);
+        loadingStage.setScene(loadingScene);
+
+        loadingStage.centerOnScreen();
+
+        if(txtNomSocio.getText().trim().equals("")) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("ERROR");
             alert.setHeaderText("ERROR AL INTENTAR IMPRIMIR EL REPORTE");
@@ -164,34 +197,61 @@ public class GradualidadController implements Initializable {
             return;
         }
 
-        LocalDateTime fecha = LocalDateTime.now();
-        String fechaForm = fecha.getDayOfMonth() + "/" + fecha.getMonthValue() + "/" + fecha.getYear();
-        Map pars = new HashMap<>();
-        pars.put("nomSocio", txtNomSocio.getText());
-        pars.put("numSocio",Integer.parseInt(txtNumSocio.getText()));
-        pars.put("fecha", fechaForm);
-        pars.put("gradualidad", txtGrad.getText());
 
         try {
-            InputStream isRepo = getClass().getResourceAsStream("/Reports/gradualidad.jasper");
-            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-            Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
-            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
-            JasperViewer viewer = new JasperViewer(jpRepo, false);
-            viewer.setSize(800, 600);
-            viewer.setAlwaysOnTop(true);
-            viewer.setLocationRelativeTo(null);
-            viewer.setTitle("PLAN DE PAGOS");
-            viewer.setVisible(true);
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    try {
 
-        }catch (Exception e) {
+                        LocalDate fecha = servicio.traerFechaHoy();
+                        String fechaForm = fecha.getDayOfMonth() + "/" + fecha.getMonthValue() + "/" + fecha.getYear();
+                        Map pars = new HashMap<>();
+                        pars.put("nomSocio", txtNomSocio.getText());
+                        pars.put("numSocio",Integer.parseInt(txtNumSocio.getText()));
+                        pars.put("fecha", fechaForm);
+                        pars.put("gradualidad", txtGrad.getText());
+
+                        InputStream isRepo = getClass().getResourceAsStream("/Reports/gradualidad.jasper");
+                        JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                        Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
+                        JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
+
+
+                        Platform.runLater(() -> {
+                            JasperViewer viewer = new JasperViewer(jpRepo, false);
+                            viewer.setSize(800, 600);
+                            viewer.setAlwaysOnTop(true);
+                            viewer.setLocationRelativeTo(null);
+                            viewer.setTitle("GRADUALIDAD");
+                            viewer.setVisible(true);
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("ERROR");
+                            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                            alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> loadingStage.close());
+            task.setOnFailed(e -> loadingStage.close());
+
+            loadingStage.show();
+            new Thread(task).start();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-
     }
-
 
     @FXML
     public void buscarSocioPorNombre() {
@@ -236,19 +296,21 @@ public class GradualidadController implements Initializable {
         if (indexSeleccionado < 0) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("ERROR");
-            alert.setHeaderText("ERROR AL INTENTAR REIMPRIMIR CONTRATOS");
+            alert.setHeaderText("ERROR AL INTENTAR IMPRIMIR LA GRADUALIDAD");
             alert.setContentText(
                     "POR FAVOR, SELECCIONE UN CRÉDITO PRIMERO");
             alert.showAndWait();
             return;
         }
 
-        ModelCredito primeraFila = (ModelCredito) tblCreditos.getItems().get(indexSeleccionado);
+        ModelCredito primeraFila = tblCreditos.getItems().get(indexSeleccionado);
         int creditoId = primeraFila.getId();
         List<Object[]> creditos = servicio.traerCreditosParaGradualidades(creditoId);
         for (Object[] fila : creditos) {
             txtVeces.setText(String.valueOf(Integer.parseInt(fila[7].toString())));
+            System.out.println(String.valueOf(Integer.parseInt(fila[7].toString())));
             break;
+
         }
 
     }
@@ -363,7 +425,17 @@ public class GradualidadController implements Initializable {
         imgBusqueda.setVisible(false);
         btnCalcular.setDisable(true);
         ModelSocio socio = servicio.traerSocioXNumero(numSocio);
-        txtNomSocio.setText(socio.getPrimerNom() + " " + socio.getSegundoNom() + " " + socio.getApellidoP() + " " + socio.getApellidoM());
+        if (socio == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR");
+            alert.setHeaderText("ERROR AL INTENTAR CARGAR LA GRADUALIDAD");
+            alert.setContentText(
+                    "EL SOCIO QUE INTENTA BUSCAR NO EXISTE");
+            alert.showAndWait();
+            limpiar();
+            return;
+        }
+        txtNomSocio.setText(socio.getNombre() + " " + socio.getApellidoP() + " " + socio.getApellidoM());
         List<ModelCredito> creditos = servicio.encontrarCreditosConSocio(numSocio);
         ObservableList<ModelCredito> data = FXCollections.observableArrayList(creditos);
         tblCreditos.setItems(data);

@@ -1,7 +1,9 @@
 package com.mutualidad.modulo_credito.Controllers;
 
 import com.mutualidad.modulo_credito.Main;
+import com.mutualidad.modulo_credito.Models.ModelCredito;
 import com.mutualidad.modulo_credito.Models.ModelSocio;
+import com.mutualidad.modulo_credito.Models.ModelTipoCredito;
 import com.mutualidad.modulo_credito.Services.Servicio;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -34,11 +36,10 @@ public class SolicitudController  implements Initializable {
     @FXML
     private Label lblNumero, lblNombre, lblAhorros, lblPSmut, lblPSngu, lblTotal, lblGradualidad, lblSugerido,
             lblEmpresa, lblTasa, lblGrad2, lblPlazo, lblMora, lblIva, lblEmpresaSal, lblBonif, lblError, lblError2,
-            lblError3, lblAvalAplica;
+            lblError3, lblAvalAplica, lblTipo;
 
     @FXML
-    private Button btnCargar, btnLimpiar, btnContinuar1, btnCargar2, btnLimpiar2, btnCargarAval, btnAddAval,
-            btnLimpiar3, btnQuitar, btnQuitar2;
+    private Button btnCargar, btnCargarAval;
 
     @FXML
     private TextField txtNumSocio, txtNombre, txtAhorros, txtPSmut, txtPSngu, txtTotalAhorros,
@@ -53,7 +54,7 @@ public class SolicitudController  implements Initializable {
             cmbIdAval, cmbAcreditacion, cmbGravamen, cmbParentescoAval;
 
     @FXML
-    private Tab tabDatosGenerales, tabDatosCredito, tabAvales, tabConfirmar, tabPropiedad;
+    private Tab tabAvales, tabConfirmar, tabPropiedad;
 
     @FXML
     private TableView<Map<String, String>> tblAvales, tblPropietarios;
@@ -134,8 +135,6 @@ public class SolicitudController  implements Initializable {
     }
 
     public void settearDatos(Map<String, Object> result) {
-
-
         lblError.setVisible(false);
         btnCargar.setDisable(true);
         txtNumSocio.setDisable(true);
@@ -183,7 +182,6 @@ public class SolicitudController  implements Initializable {
         empresaPertenece = result.get("Empresa").toString();
         txtEmpresa.setVisible(true);
         //Poner boton no visible
-        btnContinuar1.setVisible(true);
         ahorrosAntesPs = ((BigDecimal) result.get("AhorrosAntesPs"))
                 .setScale(2, RoundingMode.HALF_UP);
         psMut = ((BigDecimal) result.get("psMut"))
@@ -195,42 +193,8 @@ public class SolicitudController  implements Initializable {
     }
 
     @FXML
-    private void continuarDatosCredito() {
-        tabPane.getSelectionModel().clearAndSelect(1);
-    }
-
-    @FXML
-    private void regresarDatosGenerales() {
-        tabPane.getSelectionModel().clearAndSelect(0);
-    }
-
-    @FXML
-    private void continuarAgregadoAvales() {
-        if (!isRiesgo) {
-            tabPane.getSelectionModel().clearAndSelect(4);
-        } else {
-            tabPane.getSelectionModel().clearAndSelect(2);
-        }
-    }
-
-    @FXML
     private void regresarDatosCredito() {
         tabPane.getSelectionModel().clearAndSelect(1);
-    }
-
-    @FXML
-    private void continuarConfirmacion() {
-        tabPane.getSelectionModel().clearAndSelect(3);
-    }
-
-    @FXML
-    private void regresarAgregadoAvales() {
-        if (!isRiesgo) {
-            tabPane.getSelectionModel().clearAndSelect(1);
-        } else {
-            tabPane.getSelectionModel().clearAndSelect(2);
-
-        }
     }
 
     private boolean cambiandoTab = false;
@@ -446,7 +410,6 @@ public class SolicitudController  implements Initializable {
         txtEmpresa.setText(null);
         txtEmpresa.setVisible(false);
         //Poner boton no visible
-        btnContinuar1.setVisible(false);
         lblError.setVisible(false);
         limpiarDatosCredito();
         limpiarDatosAval();
@@ -463,16 +426,12 @@ public class SolicitudController  implements Initializable {
         }else {
             lblError2.setVisible(false);
         }
-        montoSolicitado = BigDecimal.valueOf(Long.parseLong(txtMontoSoli.getText()));
+        montoSolicitado = BigDecimal.valueOf(Double.parseDouble(txtMontoSoli.getText()));
 
 
         if (montoSolicitado.doubleValue() > ahorrosTotales.doubleValue()) {
             isRiesgo = true;
         }
-
-
-
-
         settearDatosCredito();
 
 
@@ -507,13 +466,49 @@ public class SolicitudController  implements Initializable {
         }
     }
 
-    private void settearDatosCredito() {
+    public void modificarParametrosCredito(){
+
+
+        ModelTipoCredito tipoCredito = servicio.traerTipoCredito(cmbTipo.getSelectionModel().getSelectedItem().toString());
+        if(tipoCredito.getMonto_maximo().doubleValue() < parseMoneda(txtMontoSoli.getText())){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR AL INTENTAR LLENAR LA SOLICITUD");
+            alert.setHeaderText("ERROR AL INTENTAR LLENAR LA SOLICITUD");
+            alert.setContentText(
+                    "EL MONTO SOLICITADO ES MAYOR AL MONTO MÁXIMO DEL TIPO DE CRÉDITO");
+            alert.showAndWait();
+            if(parseMoneda(txtMontoSoli.getText()) >= 50000){
+                cmbTipo.getSelectionModel().select(1);
+            }else {
+                cmbTipo.getSelectionModel().select(0);
+            }
+
+            return;
+        }
+        boolean ivaValido = servicio.traerTipoCredito(cmbTipo.getSelectionModel().getSelectedItem().toString()).isIva();
+        if (ivaValido) {
+            txtIva.setText(formatoPorcentaje.format(16));
+        } else {
+            txtIva.setText(formatoPorcentaje.format(0));
+        }
+
+        boolean bonifValida = servicio.traerTipoCredito(cmbTipo.getSelectionModel().getSelectedItem().toString()).isBonif();
+        if(bonifValida){
+            cmbBonif.getSelectionModel().select(0);
+        }else{
+            cmbBonif.getSelectionModel().select(1);
+        }
+    }
+
+    public void settearDatosCredito() {
 
         txtMontoSoli.setTextFormatter(null);
         double monto = Double.parseDouble(txtMontoSoli.getText());
         String montoFor = formatoMXN.format(monto);
         txtMontoSoli.setText(montoFor);
         txtMontoSoli.setEditable(false);
+
+
 
         List<Object[]> tasas;
         tasas = servicio.traerTasas();
@@ -524,13 +519,19 @@ public class SolicitudController  implements Initializable {
             cmbTasa.getItems().add(tasaFormateada);
         }
 
-        if (isRiesgo) {
+        if(parseMoneda(txtMontoSoli.getText()) >= 50000){
             cmbTipo.getSelectionModel().select(1);
+
+        }else {
+            cmbTipo.getSelectionModel().select(0);
+
+        }
+
+        if (isRiesgo) {
             cmbTasa.getSelectionModel().select(1);
             lblAvalAplica.setVisible(true);
             cmbAvalAplica.setVisible(true);
         } else {
-            cmbTipo.getSelectionModel().select(0);
             cmbTasa.getSelectionModel().select(0);
             lblAvalAplica.setVisible(false);
             cmbAvalAplica.setVisible(false);
@@ -626,6 +627,14 @@ public class SolicitudController  implements Initializable {
             txtIva.setText(formatoPorcentaje.format(0));
         }
 
+        boolean bonifValida = servicio.traerTipoCredito(cmbTipo.getSelectionModel().getSelectedItem().toString()).isBonif();
+        if(bonifValida){
+            cmbBonif.getSelectionModel().select(0);
+        }else{
+            cmbBonif.getSelectionModel().select(1);
+        }
+
+
 
         lblTasa.setVisible(true);
 
@@ -640,6 +649,9 @@ public class SolicitudController  implements Initializable {
         txtEmpresa2.setVisible(true);
         cmbTipo.setVisible(true);
         cmbTasa.setVisible(true);
+        cmbBonif.setDisable(true);
+        lblTipo.setVisible(true);
+        cmbTipo.setVisible(true);
 
         if (isRiesgo) {
             cmbGradualidad.setVisible(true);
@@ -690,11 +702,14 @@ public class SolicitudController  implements Initializable {
         txtEmpresa2.setVisible(false);
         cmbTasa.setVisible(false);
         cmbGradualidad.setVisible(false);
+        cmbGradualidad.setDisable(false);
         cmbPlazo.setVisible(false);
         cmbBonif.setVisible(false);
         lblError2.setVisible(false);
         lblAvalAplica.setVisible(false);
         cmbAvalAplica.setVisible(false);
+        lblTipo.setVisible(false);
+        cmbTipo.setVisible(false);
         limpiarDatosAval();
 
 
@@ -870,7 +885,7 @@ public class SolicitudController  implements Initializable {
         if (result.get("Resultado").toString().equals("CORRECTO")) {
             List<Object[]> socio = servicio.traerDetalleSocio(numSocio);
             for (Object[] fila : socio) {
-                txtDireccionAval.setText("CALLE: " + fila[5].toString().toUpperCase());
+                txtDireccionAval.setText(fila[2].toString().toUpperCase());
             }
             txtDireccionAval.setEditable(false);
             imgBusqueda2.setVisible(false);
@@ -910,7 +925,7 @@ public class SolicitudController  implements Initializable {
 
 
         cmbAvalAplica.getSelectionModel().selectFirst();
-        cmbBonif.getSelectionModel().selectFirst();
+
         cmbOpcionAval.getSelectionModel().selectFirst();
         cmbGravamen.getSelectionModel().selectFirst();
 
@@ -1074,6 +1089,19 @@ public class SolicitudController  implements Initializable {
             return;
         }
 
+        ModelTipoCredito tipoCredito = servicio.traerTipoCredito(cmbTipo.getSelectionModel().getSelectedItem().toString());
+
+        if(tipoCredito.getMonto_maximo().doubleValue() < parseMoneda(txtMontoSoli.getText())){
+            alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR AL INTENTAR CONFIRMAR LA SOLICITUD");
+            alert.setHeaderText("ERROR AL INTENTAR CONFIRMAR LA SOLICITUD");
+            alert.setContentText(
+                    "EL MONTO SOLICITADO ES MAYOR AL MONTO MÁXIMO DEL TIPO DE CRÉDITO");
+            alert.showAndWait();
+
+            return;
+        }
+
         JSONArray datosAval = new JSONArray();
         JSONArray datosPropietario = new JSONArray();
 
@@ -1096,7 +1124,7 @@ public class SolicitudController  implements Initializable {
 
         if(cmbTipo.getSelectionModel().getSelectedItem().toString().equals("CREDITO PACSE")){
 
-            if(!cmbOpcionAval.getSelectionModel().getSelectedItem().toString().equals("AVAL CON PROPIEDAD > $10,000.00" )){
+            if(!cmbAvalAplica.getSelectionModel().getSelectedItem().toString().trim().equals("AVAL CON PROPIEDAD > $10,000.00")){
                 alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("ERROR AL INTENTAR GUARDAR LA SOLICITUD");
                 alert.setHeaderText("ERROR AL INTENTAR GUARDAR LA SOLICITUD");

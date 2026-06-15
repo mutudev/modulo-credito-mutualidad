@@ -74,11 +74,8 @@ public class ModelSocio {
     @Column(name = "EMPRESA_COD")
     private String Empresa;
 
-    @Column(name = "PRIMER_NOM")
-    private String PrimerNom;
-
-    @Column(name = "SEGUNDO_NOM")
-    private String SegundoNom;
+    @Column(name = "NOMBRES")
+    private String Nombre;
 
     @Column(name = "APELLIDO_P")
     private String ApellidoP;
@@ -86,9 +83,14 @@ public class ModelSocio {
     @Column(name = "APELLIDO_M")
     private String ApellidoM;
 
-    @Column(name = "CALLE")
-    private String Calle;
+    @Column(name = "DIRECCION")
+    private String Direccion;
 
-    @Column(name = "CRUZAMIENTO")
-    private String Cruzamiento;
+    @Column(name = "CAT_ESTADO_ID")
+    private String Estado;
+
+    @Column(name = "CAT_MUNICIPIO_ID")
+    private String Municipio;
+
+
 }

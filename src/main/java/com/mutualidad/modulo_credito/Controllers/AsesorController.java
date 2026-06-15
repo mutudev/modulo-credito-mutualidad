@@ -1,17 +1,23 @@
 package com.mutualidad.modulo_credito.Controllers;
 
+import com.mutualidad.modulo_credito.Models.ModelUsuario;
+import com.mutualidad.modulo_credito.Services.Servicio;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import net.synedra.validatorfx.Validator;
@@ -23,6 +29,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -32,17 +39,26 @@ public class AsesorController implements Initializable {
 
     public String usuario;
     public int rolUsuario;
-    public boolean apertura = false;
-    public String turno = "";
+
+    private Map<String, Label> labelMap = new HashMap<>();
 
     @FXML
     private Label lblHora, lblFecha, lblUsuario;
+
+    @FXML
+    private Label lblInicio, lblNuvSolicitud, lblRegistros, lblGradualidad, lblCreAut, lblProyeccion, lblEstadoCuenta,
+            lblHistorialPagos, lblCarteras, lblContratos;
+
+    @FXML private GridPane gridOpciones;
 
     @FXML
     private StackPane contentArea;
 
     @Autowired
     private ApplicationContext context;
+
+    @Autowired
+    private Servicio servicio;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -52,7 +68,7 @@ public class AsesorController implements Initializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        LocalDateTime fecha = LocalDateTime.now();
+        LocalDate fecha = servicio.traerFechaHoy();
         lblFecha.setText(fecha.getDayOfMonth() + "/" + fecha.getMonthValue() + "/" + fecha.getYear());
         Platform.runLater(() -> {
             Stage stage = (Stage) lblHora.getScene().getWindow();
@@ -98,6 +114,7 @@ public class AsesorController implements Initializable {
         this.usuario = usuario;
         this.rolUsuario = Rol;
         lblUsuario.setText(usuario);
+        generarModulos();
     }
 
     @FXML
@@ -218,6 +235,77 @@ public class AsesorController implements Initializable {
 
         Parent fxml = loader.load();
         contentArea.getChildren().setAll(fxml);
+    }
+
+    public void generarModulos() {
+        System.out.println("me ejecuté");
+
+        ModelUsuario usuario = servicio.traerUsuario(LoginController.usuarioLoggeado);
+
+        List<Object[]> result = servicio.traerModulos(usuario.getId());
+        List<String> modulos = new ArrayList<>();
+
+        for (Object[] row : result) {
+            String descripcion = (String) row[2];
+            modulos.add(descripcion);
+        }
+
+        for (int i = 0; i < modulos.size(); i++) {
+            switch (modulos.get(i)) {
+                case "INICIO":
+                    labelMap.put(modulos.get(i), lblInicio);
+                    break;
+                case "NUEVA SOLICITUD":
+                    labelMap.put(modulos.get(i), lblNuvSolicitud);
+                    break;
+                case "SOLICITUDES PENDIENTES":
+                    labelMap.put(modulos.get(i), lblRegistros);
+                    break;
+                case "GRADUALIDAD":
+                    labelMap.put(modulos.get(i), lblGradualidad);
+                    break;
+                case "CRÉDITOS AUTORIZADOS":
+                    labelMap.put(modulos.get(i), lblCreAut);
+                    break;
+                case "PROYECCIONES":
+                    labelMap.put(modulos.get(i), lblProyeccion);
+                    break;
+                case "ESTADO DE CUENTA":
+                    labelMap.put(modulos.get(i), lblEstadoCuenta);
+                    break;
+                case "HISTORIAL DE PAGOS":
+                    labelMap.put(modulos.get(i), lblHistorialPagos);
+                    break;
+                case "CARTERAS":
+                    labelMap.put(modulos.get(i), lblCarteras);
+                    break;
+                case "CONTRATOS":
+                    labelMap.put(modulos.get(i), lblContratos);
+                    break;
+            }
+        }
+
+        ObservableList<String> moduloXrol = FXCollections.observableArrayList();
+        moduloXrol.addAll(modulos);
+
+        gridOpciones.getChildren().clear();
+
+        int fila = 0;
+        for (String modulo : moduloXrol) {
+
+            if (moduloXrol.isEmpty()) {
+                break;
+            }
+
+            if (labelMap.containsKey(modulo)) {
+                Label label = labelMap.get(modulo);
+                gridOpciones.add(label, 0, fila);
+                label.setVisible(true);
+                label.setDisable(false);
+                label.setCursor(Cursor.HAND);
+                fila++;
+            }
+        }
     }
 
 

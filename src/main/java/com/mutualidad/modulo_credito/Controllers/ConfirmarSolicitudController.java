@@ -7,11 +7,21 @@ import com.sun.jdi.event.StepEvent;
 import com.tenpisoft.n2w.MoneyConverters;
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -251,480 +261,655 @@ public class ConfirmarSolicitudController implements Initializable {
 
     @FXML
     public void mostrarTablaAmortizacion() {
-        String montoAutorizado = txtMontoAut.getText().trim();
-        String tasa = txtTasa.getText().trim();
-        String plazo = txtPlazo.getText().trim() + " Meses";
-        String nombre = txtNomSocio.getText().trim();
-        String numeroSocio = txtNumSocio.getText().trim();
-        String tipo = txtTipoCred.getText().trim();
-        String empresa = lblEmpresaEmisora.getText().trim();
 
-        ModelCredito credito = servicio.encontrarCredito(idRetornado);
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.setAlwaysOnTop(true);
 
-        String estado = "VIGENTE";
+        VBox loadingPane = new VBox(20);
+        loadingPane.setAlignment(Pos.CENTER);
+        loadingPane.setPadding(new Insets(30));
+        loadingPane.setStyle("-fx-background-color: white; -fx-border-color: #185754; -fx-border-width: 2;");
 
-        LocalDate fecha = LocalDate.now();
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(60, 60);
 
-        Map pars = new HashMap<>();
-        pars.put("CreditoID", idRetornado);
-        pars.put("nombreSocio", nombre);
-        pars.put("numSocio", numeroSocio);
-        pars.put("montoCredito", montoAutorizado);
-        pars.put("tasaCredito", tasa);
-        pars.put("plazoCredito", plazo);
-        pars.put("asesor", credito.getAsesor());
-        pars.put("fechaImpresion", fecha.format(formatter));
-        pars.put("estado", estado);
-        pars.put("tipoCredito", tipo);
-        pars.put("empresaEmisora", empresa);
+        Label loadingLabel = new Label("Generando reporte...");
+        loadingLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        loadingLabel.setTextFill(Color.web("#39577c"));
+
+        loadingPane.getChildren().addAll(progressIndicator, loadingLabel);
+
+        Scene loadingScene = new Scene(loadingPane, 300, 150);
+        loadingStage.setScene(loadingScene);
+        loadingStage.centerOnScreen();
 
         try {
-            InputStream isRepo = getClass().getResourceAsStream("/Reports/tabla_amortizacion.jasper");
-            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-            Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
-            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
-            JasperViewer viewer = new JasperViewer(jpRepo, false);
-            viewer.setSize(800, 600);
-            viewer.setAlwaysOnTop(true);
-            viewer.setLocationRelativeTo(null);
-            viewer.setTitle("PLAN DE PAGOS");
-            viewer.setVisible(true);
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    try {
+                        String montoAutorizado = txtMontoAut.getText().trim();
+                        String tasa = txtTasa.getText().trim();
+                        String plazo = txtPlazo.getText().trim() + " Meses";
+                        String nombre = txtNomSocio.getText().trim();
+                        String numeroSocio = txtNumSocio.getText().trim();
+                        String tipo = txtTipoCred.getText().trim();
+                        String empresa = lblEmpresaEmisora.getText().trim();
 
-        }catch (Exception e) {
+                        ModelCredito credito = servicio.encontrarCredito(idRetornado);
+
+                        String estado = "VIGENTE";
+
+                        LocalDate fecha = servicio.traerFechaHoy();
+
+                        Map pars = new HashMap<>();
+                        pars.put("CreditoID", idRetornado);
+                        pars.put("nombreSocio", nombre);
+                        pars.put("numSocio", numeroSocio);
+                        pars.put("montoCredito", montoAutorizado);
+                        pars.put("tasaCredito", tasa);
+                        pars.put("plazoCredito", plazo);
+                        pars.put("asesor", credito.getAsesor());
+                        pars.put("fechaImpresion", fecha.format(formatter));
+                        pars.put("estado", estado);
+                        pars.put("tipoCredito", tipo);
+                        pars.put("empresaEmisora", empresa);
+
+                        InputStream isRepo = getClass().getResourceAsStream("/Reports/tabla_amortizacion.jasper");
+                        JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                        Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
+                        JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
+
+                        Platform.runLater(() -> {
+                            JasperViewer viewer = new JasperViewer(jpRepo, false);
+                            viewer.setSize(800, 600);
+                            viewer.setAlwaysOnTop(true);
+                            viewer.setLocationRelativeTo(null);
+                            viewer.setTitle("PLAN DE PAGOS");
+                            viewer.setVisible(true);
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("ERROR");
+                            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                            alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> loadingStage.close());
+            task.setOnFailed(e -> loadingStage.close());
+
+            loadingStage.show();
+            new Thread(task).start();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+
 
     }
 
     @FXML
     public void mostrarContrato() {
-        String encabezado = "";
-        String avalesDetalle = "";
-        //Obtener a carli
-        String apoderado = dotenv.get("APODERADO");
-        String apoderadoAbreviado = dotenv.get("APODERADO_ABREVIADO");
-        //Obtener empresa por la que sale
-        ModelCredito credito = servicio.encontrarCredito(idRetornado);
-        String empresaEmisoraCompleto = servicio.traerEmpresa(credito.getEmpresa()).getRazonSocial();
-        String abreviaturas = servicio.traerEmpresa(credito.getEmpresa()).getNombre();
-        LocalDate fecha = LocalDate.now();
-        int dia = fecha.getDayOfMonth();
 
-        String mes = fecha.getMonth()
-                .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
-        String anioLetrasAnterior = converter.asWords(BigDecimal.valueOf(fecha.getYear()));
-        String anioLetras = anioLetrasAnterior.substring(0, anioLetrasAnterior.length() - 11);
-        //Este no importa mucho de construir
-        String declaraciones =  "<br/><br/>" + "<div style='text-align:center;'><b>DECLARACIONES</b></div>" + "<br/>";
 
-        String segundoParrafoEncabezado =  "<b>1. </b>" + apoderadoAbreviado + ", como Apoderado Legal de " +
-                "<b>“"+ empresaEmisoraCompleto +"”</b>, también conocida como y sus correspondientes " +
-                "abreviaturas <b>“"+abreviaturas+"”</b>, manifiesta ser "+ dotenv.get("TITULO_APODERADO") + ", " +
-                "mayor de edad legal, continúa declarando tener como domicilio el predio marcado con el " +
-                "numero " + dotenv.get("DIREC_APODERADO") + ", en la ciudad de "+ dotenv.get("CIUDAD_APODERADO") + ", México.";
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.setAlwaysOnTop(true);
 
-        String prestamista = "<br/><br/>" +
+        VBox loadingPane = new VBox(20);
+        loadingPane.setAlignment(Pos.CENTER);
+        loadingPane.setPadding(new Insets(30));
+        loadingPane.setStyle("-fx-background-color: white; -fx-border-color: #185754; -fx-border-width: 2;");
 
-                "<b>Prestamista</b>" +
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(60, 60);
 
-                "<br/><br/>";
+        Label loadingLabel = new Label("Generando reporte...");
+        loadingLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        loadingLabel.setTextFill(Color.web("#39577c"));
 
-        String aval = "";
+        loadingPane.getChildren().addAll(progressIndicator, loadingLabel);
 
-        String clausulas =  "<br/><br/>" +
+        Scene loadingScene = new Scene(loadingPane, 300, 150);
+        loadingStage.setScene(loadingScene);
+        loadingStage.centerOnScreen();
 
-                "<div style='text-align:center;'><b>CLAUSULAS</b></div>" +
-
-                "<br/>";
-
-        String clausula1 = "";
-
-        String clausula2 = "<br/><br/>" +
-
-                "<b>II.- </b>"+ empresaEmisoraCompleto + " y sus correspondientes abreviaturas " +
-                "<b>“"+ abreviaturas + "”</b>, concederá los préstamos que se le requieran, " +
-                "siempre que se desarrolle de la siguiente manera: proporcionando a los deudores la " +
-                "ubicación correcta del domicilio en el cual se le haga las respectivas notificaciones " +
-                "en caso de demora de pago del préstamo establecido." +
-
-                "<br/><br/>";
-
-        String clausula3 = "<b>III.- </b> El domicilio señalado, será en común para notificar a todos y cada uno de los " +
-                "deudores solidarios, así como para todo lo relativo al cumplimiento de pago del préstamo " +
-                "solicitado, con renuncia expresa de señalar otro domicilio y vecindad." +
-
-                "<br/><br/>";
-
-        String clausula4 = "";
-
-        String clausula5 = "";
-
-        String clausula6 = "<b>VI.- </b> Los comparecientes se someten de una manera expresa a la jurisdicción y " +
-                "competencia de los jueces y tribunales de esta ciudad de Umán, Yucatán, México, " +
-                "renunciando a cualquier fuero que pudiera corresponderles por razón de su origen o " +
-                "domicilio." +
-
-                "<br/><br/>";
-
-        String enteradasLasPartes =
-                "Enteradas las partes y conformes con el contenido y alcance legal del presente contrato, " +
-                        "lo firman el día " + dia + " de " + mes + " de " +
-                        anioLetras + "." +
-                        "</body></html>";
-
-        String encabezadoFirmas = "<html> <body>" + "<br/><br/>";
-
-        String footerFirmas = "</body></html";
-
-        String firmaAcreedor = "<center><b>EL ACREEDOR</b></center>" +
-
-                "<br/><br/><br/>" +
-
-                "<center>_____________________________<br/>" +
-                "<b>"+ dotenv.get("APODERADO") + "</b></center>" +
-
-                "<br/><br/>";
-
-        String losDeudores = "<center><b>LOS DEUDORES</b></center>" +
-
-                "<br/><br/><br/>";
-
-        String firmaAvalesYPrestamista = "";
-
-        String avisoPrivacidad =
-                "<html>" +
-                        "<body>" +
-
-                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
-                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
-                        "<br/>" +
-
-                        "<span style='font-size:8pt;'>Aviso de privacidad para las operaciones con espacios reducidos (datos deben de incluirse). " +
-                        "Nueva Generación de Umán Asociación Civil, con domicilio en calle veintitrés número ciento " +
-                        "ochenta y tres letra “B” de la ciudad de Umán, Estado de Yucatán; utilizará sus datos " +
-                        "personales aquí recabados para la obtención del crédito solicitado. Para mayor información " +
-                        "acerca del tratamiento y de los derechos que puede hacer valer, usted puede acceder al " +
-                        "aviso de privacidad completo a través de la publicación y exhibición permanente que se " +
-                        "realiza en la entrada o recepción del domicilio antes citado de esta Asociación.</span>" +
-
-                        "</body>" +
-                        "</html>";
-
-
-        String direccionSocioPrestamista = "";
-        String trabajoPrestamista = "";
-        String estadoCivilPrestamista = "";
-        String soloColoniaPrestamista = "";
-
-        List<Object[]> socioPrestamista = servicio.traerDetalleSocio(Integer.parseInt(numSocio));
-        if (!socioPrestamista.isEmpty()) {
-            Object[] fila = socioPrestamista.get(0);
-            direccionSocioPrestamista = fila[5] != null
-                    ? fila[5].toString().toUpperCase()
-                    : "";
-            trabajoPrestamista = fila[10] != null ? fila[10].toString().toUpperCase() : "";
-            estadoCivilPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
-            soloColoniaPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
-        }
-
-        String prestamistaParrafo = "<b>2.</b> "+ txtNomSocio.getText().trim() + ", manifiesta ser <b>" + estadoCivilPrestamista + "</b>, CON OFICIO " +
-                "<b>" + trabajoPrestamista + "</b>, continúa declarando tener como domicilio el predio ubicado " +
-                "en la calle "+ direccionSocioPrestamista +", de la Col. "+ soloColoniaPrestamista  +", " +
-                "en la ciudad de UMAN, YUCATAN, México.";
-
-        //Evaluar si es de riesgo o no para el primer parráfo, saber si paso al deudor y a los avales o solo al primero
-        if (isRiesgo) {
-
-            aval = "<br/><br/>" +
-
-                    "<b>Aval</b>" +
-
-                    "<br/><br/>";
-
-            //Obtener a los avales
-            int numAvales = servicio.traerNumAvales(idRetornado);
-            List<Object[]> avales = servicio.traerAvales(idRetornado);
-
-            String avalesJuntosEncabezado = txtNomSocio.getText().trim();
-            firmaAvalesYPrestamista = "<center>_____________________________<br/>" +
-                    "<b>"+ txtNomSocio.getText().trim() +  "</b></center>"+"<br/><br/><br/>";
-            for (int i = 0; i < numAvales; i++) {
-                Object[] avalIterar = avales.get(i);
-                String nombreAval = avalIterar[2] != null ? avalIterar[2].toString() : "";
-                String parentescoAval = avalIterar[4] != null ? avalIterar[4].toString() : "";
-                String direccionAval = avalIterar[10] != null ? avalIterar[10].toString() : "";
-                int numSocioAVal = Integer.parseInt(avalIterar[1].toString()) != 0 ? Integer.parseInt(avalIterar[1].toString()) : 0;
-
-                if (i == numAvales - 1) {
-                    // última iteración
-                    avalesJuntosEncabezado = avalesJuntosEncabezado + " Y " + nombreAval;
-                    firmaAvalesYPrestamista = firmaAvalesYPrestamista + "<center>_____________________________<br/>" +
-                            "<b>"+ nombreAval + "</b></center>";
-                } else {
-                    avalesJuntosEncabezado = avalesJuntosEncabezado + ", " + nombreAval;
-                    firmaAvalesYPrestamista = firmaAvalesYPrestamista + "<center>_____________________________<br/>" +
-                            "<b>"+ nombreAval + "</b></center>" +
-                            "<br/><br/><br/>";
-                }
-
-
-
-                if (numSocioAVal == 0) {
-                    //El aval no es socio
-
-                    if (i == numAvales - 1) {
-                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
-                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.";
-                    } else {
-                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
-                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.<br/><br/>";
-                    }
-
-
-
-                } else {
-                    //El aval si es socio
-                    String direccionAvalPrestamista = "";
-                    String trabajoAvalPrestamista = "";
-                    String estadoCivilAvalPrestamista = "";
-                    String soloColoniaAvalPrestamista = "";
-                    List<Object[]> avalPrestamista = servicio.traerDetalleSocio(numSocioAVal);
-                    if (!avalPrestamista.isEmpty()) {
-                        Object[] fila = avalPrestamista.get(0);
-                        direccionAvalPrestamista = fila[5] != null
-                                ? fila[5].toString().toUpperCase()
-                                : "";
-                        trabajoAvalPrestamista = fila[10] != null ? fila[10].toString().toUpperCase() : "";
-                        estadoCivilAvalPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
-                        soloColoniaAvalPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
-                    }
-
-                    if (i == numAvales - 1) {
-                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
-                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
-                                "en la ciudad de UMAN, YUCATAN, México.";
-                    } else {
-                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
-                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
-                                "en la ciudad de UMAN, YUCATAN, México." + "<br/><br/>";
-                    }
-
-
-                }
-
-            } // Fin del for de llenado dinámico de avales
-
-            encabezado = "<html>" + "<body style='font-size:11pt; font-family:Serif;'>" +
-                    "<b>CONTRATO</b> QUE CELEBRAN POR UNA PARTE EL "+ apoderado + " COMO " +
-                    "APODERADO DE <b>“"+ empresaEmisoraCompleto+ "”</b> y sus correspondientes " +
-                    "abreviaturas <b>“"+ abreviaturas+ "”</b> Y POR LA OTRA "+ avalesJuntosEncabezado +
-                    ", AL TENOR DE LAS SIGUIENTES CLAUSULAS.";
-
-            clausula1 = "<b>I.- </b>" + avalesJuntosEncabezado + ", acepta(n) estar interesado(s) " +
-                    "en hacer préstamo de dinero en efectivo que proporciona " +
-                    "<b>“"+ empresaEmisoraCompleto + "”</b> y sus correspondientes abreviaturas " +
-                    "<b>“"+ abreviaturas + "”</b>.";
-
-            clausula4 = "<b>IV.-</b> Finalmente, " + avalesJuntosEncabezado + ", declaran estar de " +
-                    "acuerdo señalando como domicilio en el cual deban recibir todo tipo de notificaciones el " +
-                    "predio ubicado en la calle "+ direccionSocioPrestamista + ", de la Colonia " + soloColoniaPrestamista
-                    + ", en la ciudad de UMAN, YUCATAN, México." +
-
-                    "<br/><br/>";
-
-            clausula5 = "<b>V.- </b> En caso de controversia en juicio serán notificadas a todos y cada uno de los " +
-                    "deudores en el domicilio del deudor principal el cual es el predio ubicado en la calle " + direccionSocioPrestamista +
-                    ", de la Colonia "+ soloColoniaPrestamista + ", en la ciudad de " +
-                    "UMAN, YUCATAN, México." +
-
-                    "<br/><br/>";
-
-        } else {
-            //Solo el deudor
-            encabezado = "<html>" + "<body style='font-size:11pt; font-family:Serif;'>" +
-                    "<b>CONTRATO</b> QUE CELEBRAN POR UNA PARTE EL "+ apoderado + " COMO " +
-                    "APODERADO DE <b>“"+ empresaEmisoraCompleto+ "”</b> y sus correspondientes " +
-                    "abreviaturas <b>“"+ abreviaturas+ "”</b> Y POR LA OTRA "+ txtNomSocio.getText().trim() +
-                    ", AL TENOR DE LAS SIGUIENTES CLAUSULAS.";
-
-            clausula1 = "<b>I.- </b>" + txtNomSocio.getText().trim() + ", acepta(n) estar interesado(s) " +
-                    "en hacer préstamo de dinero en efectivo que proporciona " +
-                    "<b>“"+ empresaEmisoraCompleto + "”</b> y sus correspondientes abreviaturas " +
-                    "<b>“"+ abreviaturas + "”</b>.";
-
-            clausula4 = "<b>IV.-</b> Finalmente, " + txtNomSocio.getText().trim() + ", declara estar de " +
-                    "acuerdo señalando como domicilio en el cual deba recibir todo tipo de notificaciones el " +
-                    "predio ubicado en la calle "+ direccionSocioPrestamista + ", de la Colonia " + soloColoniaPrestamista
-                     + ", en la ciudad de UMAN, YUCATAN, México." +
-
-                    "<br/><br/>";
-
-            clausula5 = "<b>V.- </b> En caso de controversia en juicio será notificado el " +
-                    "deudor en el domicilio del deudor principal el cual es el predio ubicado en la calle " + direccionSocioPrestamista
-                    + ", de la Colonia "+ soloColoniaPrestamista + ", en la ciudad de " +
-                    "UMAN, YUCATAN, México." +
-
-                    "<br/><br/>";
-
-            firmaAvalesYPrestamista = "<center>_____________________________<br/>" +
-                    "<b>"+ txtNomSocio.getText().trim() +  "</b></center>";
-        }
-
-
-        //Concatenar toda la chingadera que me acabo de aventar sin usar fokin chat
-        Map pars = new HashMap<>();
-
-        aviso = avisoPrivacidad;
-        html = encabezado + declaraciones + segundoParrafoEncabezado + prestamista + prestamistaParrafo + aval + avalesDetalle + clausulas
-        + clausula1 + clausula2 + clausula3 + clausula4 + clausula5 + clausula6 + enteradasLasPartes;
-        firmas = encabezadoFirmas + firmaAcreedor + losDeudores + firmaAvalesYPrestamista + footerFirmas;
-        pars.put("textHtml", html);
-        pars.put("textFirmas", firmas);
-        pars.put("textAviso", aviso);
 
         try {
-            InputStream isRepo = getClass().getResourceAsStream("/Reports/contrato.jasper");
-            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    try {
 
-            JasperViewer viewer = new JasperViewer(jpRepo, false);
 
-            viewer.setAlwaysOnTop(true);
-            viewer.setSize(800, 600);
-            viewer.setLocationRelativeTo(null);
-            viewer.setTitle("CONTRATO DE CRÉDITO");
-            viewer.setVisible(true);
+                        String encabezado = "";
+                        String avalesDetalle = "";
+                        //Obtener a carli
+                        String apoderado = servicio.obtenerApoderadoLegal();
+                        String apoderadoAbreviado = dotenv.get("APODERADO_ABREVIADO");
+                        //Obtener empresa por la que sale
+                        ModelCredito credito = servicio.encontrarCredito(idRetornado);
+                        String empresaEmisoraCompleto = servicio.traerEmpresa(credito.getEmpresa()).getRazonSocial();
+                        String abreviaturas = servicio.traerEmpresa(credito.getEmpresa()).getNombre();
+                        LocalDate fecha = servicio.traerFechaHoy();
+                        int dia = fecha.getDayOfMonth();
 
-        }catch (Exception e) {
+                        String mes = fecha.getMonth()
+                                .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
+                        String anioLetrasAnterior = converter.asWords(BigDecimal.valueOf(fecha.getYear()));
+                        String anioLetras = anioLetrasAnterior.substring(0, anioLetrasAnterior.length() - 11);
+                        //Este no importa mucho de construir
+                        String declaraciones =  "<br/><br/>" + "<div style='text-align:center;'><b>DECLARACIONES</b></div>" + "<br/>";
+
+                        String segundoParrafoEncabezado =  "<b>1. </b>" + apoderadoAbreviado + ", como Apoderado Legal de " +
+                                "<b>“"+ empresaEmisoraCompleto +"”</b>, también conocida como y sus correspondientes " +
+                                "abreviaturas <b>“"+abreviaturas+"”</b>, manifiesta ser "+ dotenv.get("TITULO_APODERADO") + ", " +
+                                "mayor de edad legal, continúa declarando tener como domicilio el predio marcado con el " +
+                                "numero " + dotenv.get("DIREC_APODERADO") + ", en la ciudad de "+ dotenv.get("CIUDAD_APODERADO") + ", México.";
+
+                        String prestamista = "<br/><br/>" +
+
+                                "<b>Prestamista</b>" +
+
+                                "<br/><br/>";
+
+                        String aval = "";
+
+                        String clausulas =  "<br/><br/>" +
+
+                                "<div style='text-align:center;'><b>CLAUSULAS</b></div>" +
+
+                                "<br/>";
+
+                        String clausula1 = "";
+
+                        String clausula2 = "<br/><br/>" +
+
+                                "<b>II.- </b>"+ empresaEmisoraCompleto + " y sus correspondientes abreviaturas " +
+                                "<b>“"+ abreviaturas + "”</b>, concederá los préstamos que se le requieran, " +
+                                "siempre que se desarrolle de la siguiente manera: proporcionando a los deudores la " +
+                                "ubicación correcta del domicilio en el cual se le haga las respectivas notificaciones " +
+                                "en caso de demora de pago del préstamo establecido." +
+
+                                "<br/><br/>";
+
+                        String clausula3 = "<b>III.- </b> El domicilio señalado, será en común para notificar a todos y cada uno de los " +
+                                "deudores solidarios, así como para todo lo relativo al cumplimiento de pago del préstamo " +
+                                "solicitado, con renuncia expresa de señalar otro domicilio y vecindad." +
+
+                                "<br/><br/>";
+
+                        String clausula4 = "";
+
+                        String clausula5 = "";
+
+                        String clausula6 = "<b>VI.- </b> Los comparecientes se someten de una manera expresa a la jurisdicción y " +
+                                "competencia de los jueces y tribunales de esta ciudad de Umán, Yucatán, México, " +
+                                "renunciando a cualquier fuero que pudiera corresponderles por razón de su origen o " +
+                                "domicilio." +
+
+                                "<br/><br/>";
+
+                        String enteradasLasPartes =
+                                "Enteradas las partes y conformes con el contenido y alcance legal del presente contrato, " +
+                                        "lo firman el día " + dia + " de " + mes + " de " +
+                                        anioLetras + "." +
+                                        "</body></html>";
+
+                        String encabezadoFirmas = "<html> <body>" + "<br/><br/>";
+
+                        String footerFirmas = "</body></html";
+
+                        String firmaAcreedor = "<center><b>EL ACREEDOR</b></center>" +
+
+                                "<br/><br/><br/>" +
+
+                                "<center>_____________________________<br/>" +
+                                "<b>"+ apoderado + "</b></center>" +
+
+                                "<br/><br/>";
+
+                        String losDeudores = "<center><b>LOS DEUDORES</b></center>" +
+
+                                "<br/><br/><br/>";
+
+                        String firmaAvalesYPrestamista = "";
+
+                        String avisoPrivacidad =
+                                "<html>" +
+                                        "<body>" +
+
+                                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
+                                        "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" +
+                                        "<br/>" +
+
+                                        "<span style='font-size:8pt;'>Aviso de privacidad para las operaciones con espacios reducidos (datos deben de incluirse). " +
+                                        "Nueva Generación de Umán Asociación Civil, con domicilio en calle veintitrés número ciento " +
+                                        "ochenta y tres letra “B” de la ciudad de Umán, Estado de Yucatán; utilizará sus datos " +
+                                        "personales aquí recabados para la obtención del crédito solicitado. Para mayor información " +
+                                        "acerca del tratamiento y de los derechos que puede hacer valer, usted puede acceder al " +
+                                        "aviso de privacidad completo a través de la publicación y exhibición permanente que se " +
+                                        "realiza en la entrada o recepción del domicilio antes citado de esta Asociación.</span>" +
+
+                                        "</body>" +
+                                        "</html>";
+
+
+                        String direccionSocioPrestamista = "";
+                        String trabajoPrestamista = "";
+                        String estadoCivilPrestamista = "";
+                        String soloColoniaPrestamista = "";
+                        String municipioSocioPrestamista = "";
+                        String estadoSocioPrestamista = "";
+
+                        List<Object[]> socioPrestamista = servicio.traerDetalleSocio(Integer.parseInt(numSocio));
+                        if (!socioPrestamista.isEmpty()) {
+                            Object[] fila = socioPrestamista.get(0);
+                            direccionSocioPrestamista = fila[2] != null
+                                    ? fila[2].toString().toUpperCase()
+                                    : "";
+                            trabajoPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
+                            estadoCivilPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                            municipioSocioPrestamista = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                            estadoSocioPrestamista = fila[16] != null ? fila[16].toString().toUpperCase() : "";
+
+                        }
+
+                        String prestamistaParrafo = "<b>2.</b> "+ txtNomSocio.getText().trim() + ", manifiesta ser <b>" + estadoCivilPrestamista + "</b>, CON OFICIO " +
+                                "<b>" + trabajoPrestamista + "</b>, continúa declarando tener como domicilio el predio ubicado " +
+                                "en la: "+ direccionSocioPrestamista + ", " +
+                                "en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO.";
+
+                        //Evaluar si es de riesgo o no para el primer parráfo, saber si paso al deudor y a los avales o solo al primero
+                        if (isRiesgo) {
+
+                            aval = "<br/><br/>" +
+
+                                    "<b>Aval</b>" +
+
+                                    "<br/><br/>";
+
+                            //Obtener a los avales
+                            int numAvales = servicio.traerNumAvales(idRetornado);
+                            List<Object[]> avales = servicio.traerAvales(idRetornado);
+
+                            String avalesJuntosEncabezado = txtNomSocio.getText().trim();
+                            firmaAvalesYPrestamista = "<center>_____________________________<br/>" +
+                                    "<b>"+ txtNomSocio.getText().trim() +  "</b></center>"+"<br/><br/><br/>";
+                            for (int i = 0; i < numAvales; i++) {
+                                Object[] avalIterar = avales.get(i);
+                                String nombreAval = avalIterar[2] != null ? avalIterar[2].toString() : "";
+                                String parentescoAval = avalIterar[4] != null ? avalIterar[4].toString() : "";
+                                String direccionAval = avalIterar[10] != null ? avalIterar[10].toString() : "";
+                                int numSocioAVal = Integer.parseInt(avalIterar[1].toString()) != 0 ? Integer.parseInt(avalIterar[1].toString()) : 0;
+
+                                if (i == numAvales - 1) {
+                                    // última iteración
+                                    avalesJuntosEncabezado = avalesJuntosEncabezado + " Y " + nombreAval;
+                                    firmaAvalesYPrestamista = firmaAvalesYPrestamista + "<center>_____________________________<br/>" +
+                                            "<b>"+ nombreAval + "</b></center>";
+                                } else {
+                                    avalesJuntosEncabezado = avalesJuntosEncabezado + ", " + nombreAval;
+                                    firmaAvalesYPrestamista = firmaAvalesYPrestamista + "<center>_____________________________<br/>" +
+                                            "<b>"+ nombreAval + "</b></center>" +
+                                            "<br/><br/><br/>";
+                                }
+
+
+
+                                if (numSocioAVal == 0) {
+                                    //El aval no es socio
+
+                                    if (i == numAvales - 1) {
+                                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
+                                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
+                                                "en la " + direccionAval;
+                                    } else {
+                                        avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
+                                                "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
+                                                "en la " + direccionAval + "<br/><br/>";
+                                    }
+
+
+
+                                } else {
+                                    //El aval si es socio
+                                    String direccionAvalPrestamista = "";
+                                    String trabajoAvalPrestamista = "";
+                                    String estadoCivilAvalPrestamista = "";
+                                    String municipioAvalPrestamista = "";
+                                    String estadoAvalPrestamista = "";
+                                    List<Object[]> avalPrestamista = servicio.traerDetalleSocio(numSocioAVal);
+                                    if (!avalPrestamista.isEmpty()) {
+                                        Object[] fila = avalPrestamista.get(0);
+                                        direccionAvalPrestamista = fila[2] != null
+                                                ? fila[2].toString().toUpperCase()
+                                                : "";
+                                        trabajoAvalPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
+                                        estadoCivilAvalPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                                        municipioAvalPrestamista = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                                        estadoAvalPrestamista = fila[16] != null ? fila[16].toString().toUpperCase() : "";
+                                    }
+
+                                    if (i == numAvales - 1) {
+                                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
+                                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
+                                                "en la: "+ direccionAvalPrestamista + ", " +
+                                                "en la ciudad de " + municipioAvalPrestamista.toUpperCase() + ", " + estadoAvalPrestamista.toUpperCase() + ", MÉXICO.";
+                                    } else {
+                                        avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
+                                                "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
+                                                "en la: "+ direccionAvalPrestamista + ", " +
+                                                "en la ciudad de " + municipioAvalPrestamista.toUpperCase() + ", " + estadoAvalPrestamista.toUpperCase() + ", MÉXICO." + "<br/><br/>";
+                                    }
+
+
+                                }
+
+                            } // Fin del for de llenado dinámico de avales
+
+                            encabezado = "<html>" + "<body style='font-size:11pt; font-family:Serif;'>" +
+                                    "<b>CONTRATO</b> QUE CELEBRAN POR UNA PARTE EL "+ apoderado + " COMO " +
+                                    "APODERADO DE <b>“"+ empresaEmisoraCompleto+ "”</b> y sus correspondientes " +
+                                    "abreviaturas <b>“"+ abreviaturas+ "”</b> Y POR LA OTRA "+ avalesJuntosEncabezado +
+                                    ", AL TENOR DE LAS SIGUIENTES CLAUSULAS.";
+
+                            clausula1 = "<b>I.- </b>" + avalesJuntosEncabezado + ", acepta(n) estar interesado(s) " +
+                                    "en hacer préstamo de dinero en efectivo que proporciona " +
+                                    "<b>“"+ empresaEmisoraCompleto + "”</b> y sus correspondientes abreviaturas " +
+                                    "<b>“"+ abreviaturas + "”</b>.";
+
+                            clausula4 = "<b>IV.-</b> Finalmente, " + avalesJuntosEncabezado + ", declaran estar de " +
+                                    "acuerdo señalando como domicilio en el cual deban recibir todo tipo de notificaciones el " +
+                                    "predio ubicado en la " + direccionSocioPrestamista
+                                    + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
+
+                                    "<br/><br/>";
+
+                            clausula5 = "<b>V.- </b> En caso de controversia en juicio serán notificadas a todos y cada uno de los " +
+                                    "deudores en el domicilio del deudor principal el cual es el predio ubicado en la " + direccionSocioPrestamista
+                                    + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
+
+                                    "<br/><br/>";
+
+                        } else {
+                            //Solo el deudor
+                            encabezado = "<html>" + "<body style='font-size:11pt; font-family:Serif;'>" +
+                                    "<b>CONTRATO</b> QUE CELEBRAN POR UNA PARTE EL "+ apoderado + " COMO " +
+                                    "APODERADO DE <b>“"+ empresaEmisoraCompleto+ "”</b> y sus correspondientes " +
+                                    "abreviaturas <b>“"+ abreviaturas+ "”</b> Y POR LA OTRA "+ txtNomSocio.getText().trim() +
+                                    ", AL TENOR DE LAS SIGUIENTES CLAUSULAS.";
+
+                            clausula1 = "<b>I.- </b>" + txtNomSocio.getText().trim() + ", acepta(n) estar interesado(s) " +
+                                    "en hacer préstamo de dinero en efectivo que proporciona " +
+                                    "<b>“"+ empresaEmisoraCompleto + "”</b> y sus correspondientes abreviaturas " +
+                                    "<b>“"+ abreviaturas + "”</b>.";
+
+                            clausula4 = "<b>IV.-</b> Finalmente, " + txtNomSocio.getText().trim() + ", declara estar de " +
+                                    "acuerdo señalando como domicilio en el cual deba recibir todo tipo de notificaciones el " +
+                                    "predio ubicado en la " + direccionSocioPrestamista
+                                    + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
+
+                                    "<br/><br/>";
+
+                            clausula5 = "<b>V.- </b> En caso de controversia en juicio será notificado el " +
+                                    "deudor en el domicilio del deudor principal el cual es el predio ubicado en la " + direccionSocioPrestamista
+                                    + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
+
+                                    "<br/><br/>";
+
+                            firmaAvalesYPrestamista = "<center>_____________________________<br/>" +
+                                    "<b>"+ txtNomSocio.getText().trim() +  "</b></center>";
+                        }
+
+
+
+
+
+
+                        //Concatenar toda la chingadera que me acabo de aventar sin usar fokin chat
+                        Map pars = new HashMap<>();
+
+                        aviso = avisoPrivacidad;
+                        html = encabezado + declaraciones + segundoParrafoEncabezado + prestamista + prestamistaParrafo + aval + avalesDetalle + clausulas
+                                + clausula1 + clausula2 + clausula3 + clausula4 + clausula5 + clausula6 + enteradasLasPartes;
+                        firmas = encabezadoFirmas + firmaAcreedor + losDeudores + firmaAvalesYPrestamista + footerFirmas;
+                        pars.put("textHtml", html);
+                        pars.put("textFirmas", firmas);
+                        pars.put("textAviso", aviso);
+
+                        InputStream isRepo = getClass().getResourceAsStream("/Reports/contrato.jasper");
+                        JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                        JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
+
+                        Platform.runLater(() -> {
+                            JasperViewer viewer = new JasperViewer(jpRepo, false);
+                            viewer.setSize(800, 600);
+                            viewer.setAlwaysOnTop(true);
+                            viewer.setLocationRelativeTo(null);
+                            viewer.setTitle("CONTRATO DE CREDITO");
+                            viewer.setVisible(true);
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("ERROR");
+                            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                            alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> loadingStage.close());
+            task.setOnFailed(e -> loadingStage.close());
+
+            loadingStage.show();
+            new Thread(task).start();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @FXML
     public void mostrarPagare() {
 
 
-        ModelCredito credito = servicio.encontrarCredito(idRetornado);
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.setAlwaysOnTop(true);
 
-        String dineroLetras = converter.asWords(BigDecimal.valueOf(credito.getMonto()));
-        LocalDate hoy = LocalDate.now();
-        int dia = hoy.getDayOfMonth();
-        String pluralDia = (dia == 1) ? "día" : "días";
-        String mes = hoy.getMonth()
-                .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
-        int anio = hoy.getYear();
-        String suscrito = String.format(
-                "Suscrito en la Ciudad de UMAN, YUCATAN a los %d %s del mes %s de %d.",
-                dia,
-                pluralDia,
-                mes,
-                anio
-        );
+        VBox loadingPane = new VBox(20);
+        loadingPane.setAlignment(Pos.CENTER);
+        loadingPane.setPadding(new Insets(30));
+        loadingPane.setStyle("-fx-background-color: white; -fx-border-color: #185754; -fx-border-width: 2;");
 
-        ModelSocio socio = servicio.traerSocioXNumero(Integer.parseInt(numSocio));
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(60, 60);
 
-        Map pars = new HashMap<>();
-        pars.put("folio", String.valueOf(idRetornado));
-        pars.put("numSocio", numSocio);
-        pars.put("fechaVencimiento", credito.getFv().getDayOfMonth() + "/" + credito.getFv().getMonthValue() + "/" + credito.getFv().getYear());
-        pars.put("importe", formatoMXN.format(credito.getMonto()));
-        pars.put("parrafo1", "Por el presente Pagaré reconozco deber y me obligo a pagar incondicionalmente al día de su " +
-                "vencimiento en esta ciudad de UMAN, YUCATAN a la orden de " +
-                servicio.obtenerEmpresaXNombre(lblEmpresaEmisora.getText()).getRazonSocial() + " la cantidad de: " +
-                formatoMXN.format(credito.getMonto()) +
-                " (Son: " + dineroLetras.toUpperCase() + " M.N.). " +
-                "Valor que he recibido en efectivo a mi entera satisfacción.");
-        pars.put("parrafoOrdinarios",
-                "I. Intereses Ordinarios. El Suscriptor se obliga incondicionalmente a pagar intereses " +
-                        "ordinarios sobre el monto principal del presente Pagaré, mismo que será por una" +
-                        " tasa mensual del " + txtTasa.getText() + " sobre saldos insolutos y que se calcularán desde" +
-                        " la fecha de Suscripción y hasta la Fecha de Vencimiento," +
-                        " pagaderos precisamente en la Fecha de Vencimiento.");
+        Label loadingLabel = new Label("Generando reporte...");
+        loadingLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        loadingLabel.setTextFill(Color.web("#39577c"));
 
-        pars.put("suscrito", suscrito);
-        pars.put("nombreDeudor", "Nombre: " + txtNomSocio.getText() +"\nDirección: CALLE " + socio.getCalle() + " " + socio.getCruzamiento() + " UMÁN, YUCATÁN.");
-        pars.put("mostrarLinea0", true);
+        loadingPane.getChildren().addAll(progressIndicator, loadingLabel);
 
-        int MAX_AVALES = 5;
+        Scene loadingScene = new Scene(loadingPane, 300, 150);
+        loadingStage.setScene(loadingScene);
+        loadingStage.centerOnScreen();
 
-
-        if(!isRiesgo){
-            for (int i = 1; i <= MAX_AVALES; i++) {
-                pars.put("avalTitulo" + i, "");
-                pars.put("nombreAval" + i, "");
-                pars.put("firmaAval" + i, "");
-                pars.put("mostrarLinea" + i, false);
-            }
-        }else{
-            //Si si es de riesgo
-            //Saber cuantos avales son
-            int numAvales = servicio.traerNumAvales(idRetornado);
-            List<Object[]> avales = servicio.traerAvales(idRetornado);
-
-
-            for (int i = 1; i <= MAX_AVALES; i++) {
-                pars.put("avalTitulo" + i, "");
-                pars.put("nombreAval" + i, "");
-                pars.put("firmaAval" + i, "");
-                pars.put("mostrarLinea" + i, false);
-            }
-
-            for (int i = 0; i < numAvales && i < MAX_AVALES; i++) {
-
-                Object[] aval = avales.get(i);
-                int idx = i + 1;
-
-                String nombreAval = aval[2] != null ? aval[2].toString() : "";
-                String direccionAvalEnviar = "";
-
-                Integer numSocio = aval[1] != null ? Integer.valueOf(aval[1].toString()) : null;
-
-                if (numSocio == null || numSocio == 0) {
-                    direccionAvalEnviar = aval[10] != null ? aval[10].toString() : "";
-                } else {
-                    List<Object[]> socioParaDireccion = servicio.traerDetalleSocio(numSocio);
-                    if (!socioParaDireccion.isEmpty()) {
-                        Object[] fila = socioParaDireccion.get(0);
-                        direccionAvalEnviar = fila[5] != null
-                                ? fila[5].toString().toUpperCase()
-                                : "";
-                    }
-                }
-
-                pars.put("avalTitulo" + idx, "Aval:");
-                pars.put(
-                        "nombreAval" + idx,
-                        "Nombre: " + nombreAval + "\nDirección: CALLE " + direccionAvalEnviar
-                );
-                pars.put("firmaAval" + idx, "FIRMA");
-                pars.put("mostrarLinea" + idx, true);
-            }
-
-
-        }
-
-        pars.put("elabora", "ELABORA: " + asesor.toString());
-        pars.put("revisa", "REVISA: "+ "CONTABILIDAD");
 
         try {
-            InputStream isRepo = getClass().getResourceAsStream("/Reports/pagare.jasper");
-            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    try {
 
-            JasperViewer viewer = new JasperViewer(jpRepo, false);
+                        ModelCredito credito = servicio.encontrarCredito(idRetornado);
 
-            viewer.setAlwaysOnTop(true);
-            viewer.setSize(800, 600);
-            viewer.setLocationRelativeTo(null);
-            viewer.setTitle("PAGARE DE CRÉDITO");
-            viewer.setVisible(true);
+                        String dineroLetras = converter.asWords(BigDecimal.valueOf(credito.getMonto()));
+                        LocalDate hoy = servicio.traerFechaHoy();
+                        int dia = hoy.getDayOfMonth();
+                        String pluralDia = (dia == 1) ? "día" : "días";
+                        String mes = hoy.getMonth()
+                                .getDisplayName(TextStyle.FULL, new Locale("es", "MX"));
+                        int anio = hoy.getYear();
+                        String suscrito = String.format(
+                                "Suscrito en la Ciudad de UMAN, YUCATAN a los %d %s del mes %s de %d.",
+                                dia,
+                                pluralDia,
+                                mes,
+                                anio
+                        );
 
-        }catch (Exception e) {
+                        ModelSocio socio = servicio.traerSocioXNumero(Integer.parseInt(numSocio));
+
+
+                        Map pars = new HashMap<>();
+                        pars.put("folio", String.valueOf(idRetornado));
+                        pars.put("numSocio", numSocio);
+                        pars.put("fechaVencimiento", credito.getFv().getDayOfMonth() + "/" + credito.getFv().getMonthValue() + "/" + credito.getFv().getYear());
+                        pars.put("importe", formatoMXN.format(credito.getMonto()));
+                        pars.put("parrafo1", "Por el presente Pagaré reconozco deber y me obligo a pagar incondicionalmente al día de su " +
+                                "vencimiento en esta ciudad de UMAN, YUCATAN a la orden de " +
+                                servicio.obtenerEmpresaXNombre(lblEmpresaEmisora.getText()).getRazonSocial() + " la cantidad de: " +
+                                formatoMXN.format(credito.getMonto()) +
+                                " (Son: " + dineroLetras.toUpperCase() + " M.N.). " +
+                                "Valor que he recibido en efectivo a mi entera satisfacción.");
+                        pars.put("parrafoOrdinarios",
+                                "I. Intereses Ordinarios. El Suscriptor se obliga incondicionalmente a pagar intereses " +
+                                        "ordinarios sobre el monto principal del presente Pagaré, mismo que será por una" +
+                                        " tasa mensual del " + txtTasa.getText() + " sobre saldos insolutos y que se calcularán desde" +
+                                        " la fecha de Suscripción y hasta la Fecha de Vencimiento," +
+                                        " pagaderos precisamente en la Fecha de Vencimiento.");
+
+                        pars.put("suscrito", suscrito);
+                        pars.put("nombreDeudor", "Nombre: " + txtNomSocio.getText() +"\nDirección: " + socio.getDireccion() + " UMÁN, YUCATÁN.");
+                        pars.put("mostrarLinea0", true);
+
+                        int MAX_AVALES = 5;
+
+
+                        if(!isRiesgo){
+                            for (int i = 1; i <= MAX_AVALES; i++) {
+                                pars.put("avalTitulo" + i, "");
+                                pars.put("nombreAval" + i, "");
+                                pars.put("firmaAval" + i, "");
+                                pars.put("mostrarLinea" + i, false);
+                            }
+                        }else{
+                            //Si si es de riesgo
+                            //Saber cuantos avales son
+                            int numAvales = servicio.traerNumAvales(idRetornado);
+                            List<Object[]> avales = servicio.traerAvales(idRetornado);
+
+
+                            for (int i = 1; i <= MAX_AVALES; i++) {
+                                pars.put("avalTitulo" + i, "");
+                                pars.put("nombreAval" + i, "");
+                                pars.put("firmaAval" + i, "");
+                                pars.put("mostrarLinea" + i, false);
+                            }
+
+                            for (int i = 0; i < numAvales && i < MAX_AVALES; i++) {
+
+                                Object[] aval = avales.get(i);
+                                int idx = i + 1;
+
+                                String nombreAval = aval[2] != null ? aval[2].toString() : "";
+                                String direccionAvalEnviar = "";
+
+                                Integer numSocio = aval[1] != null ? Integer.valueOf(aval[1].toString()) : null;
+
+                                String municipioSocioAval = "";
+
+                                String estadioSocioAval = "";
+
+                                if (numSocio == null || numSocio == 0) {
+                                    direccionAvalEnviar = aval[10] != null ? aval[10].toString() : "";
+                                } else {
+                                    List<Object[]> socioParaDireccion = servicio.traerDetalleSocio(numSocio);
+                                    if (!socioParaDireccion.isEmpty()) {
+                                        Object[] fila = socioParaDireccion.get(0);
+                                        direccionAvalEnviar = fila[2] != null
+                                                ? fila[2].toString().toUpperCase()
+                                                : "";
+
+                                        municipioSocioAval = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                                        estadioSocioAval = fila[16] != null ? fila[16].toString().toUpperCase() : "";
+
+                                    }
+                                }
+
+                                pars.put("avalTitulo" + idx, "Aval:");
+                                pars.put(
+                                        "nombreAval" + idx,
+                                        "Nombre: " + nombreAval + "\nDirección: " + direccionAvalEnviar + " "
+                                        + municipioSocioAval + " "+ estadioSocioAval
+                                );
+                                pars.put("firmaAval" + idx, "FIRMA");
+                                pars.put("mostrarLinea" + idx, true);
+                            }
+
+
+                        }
+
+                        pars.put("elabora", "ELABORA: " + asesor.toString());
+                        pars.put("revisa", "REVISA: "+ "CONTABILIDAD");
+
+                        InputStream isRepo = getClass().getResourceAsStream("/Reports/pagare.jasper");
+                        JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                        JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, new JREmptyDataSource());
+
+
+                        Platform.runLater(() -> {
+                            JasperViewer viewer = new JasperViewer(jpRepo, false);
+                            viewer.setSize(800, 600);
+                            viewer.setAlwaysOnTop(true);
+                            viewer.setLocationRelativeTo(null);
+                            viewer.setTitle("PLAN DE PAGOS");
+                            viewer.setVisible(true);
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("ERROR");
+                            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                            alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> loadingStage.close());
+            task.setOnFailed(e -> loadingStage.close());
+
+            loadingStage.show();
+            new Thread(task).start();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

@@ -329,7 +329,14 @@ public class HistorialController implements Initializable {
         ModelCredito creditoSeleccionado =
                 tblCreditos.getSelectionModel().getSelectedItem();
 
+
+
         if (creditoSeleccionado == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR");
+            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+            alert.setContentText("POR FAVOR, SELECCIONE UN CRÉDITO PRIMERO");
+            alert.showAndWait();
             return; // nada seleccionado
         }
 
@@ -358,13 +365,27 @@ public class HistorialController implements Initializable {
 
         loadingStage.centerOnScreen();
 
+        Double saldo = servicio.chequeoSaldo(tblCreditos.getSelectionModel().getSelectedItem().getId());
+
+        if (saldo == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR");
+            alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+            alert.setContentText("EL CRÉDITO AÚN NO TIENE TRANSACCIONES.");
+            alert.showAndWait();
+            return;
+        }
+
+
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 try {
 
+
+
                     String creditoId = String.valueOf(creditoSeleccionado.getId());
-                    LocalDateTime fecha = LocalDateTime.now();
+                    LocalDate fecha = servicio.traerFechaHoy();
                     LocalDate fechades = tblCreditos.getSelectionModel().getSelectedItem().getFd();
                     String fechadesform = fechades.getDayOfMonth() + "/" + fechades.getMonthValue() + "/" + fechades.getYear();
                     String fechaForm = fecha.getDayOfMonth() + "/" + fecha.getMonthValue() + "/" + fecha.getYear();
@@ -372,18 +393,16 @@ public class HistorialController implements Initializable {
                     String fechavform = fechav.getDayOfMonth() + "/" + fechav.getMonthValue() + "/" + fechav.getYear();
 
                     ModelSocio socio = servicio.traerSocioXNumero(Integer.parseInt(txtNumSocio.getText()));
-                    String segundoNom = (socio.getSegundoNom() != null && !socio.getSegundoNom().isEmpty())
-                            ? " " + socio.getSegundoNom()
-                            : "";
 
-                    double saldo = servicio.chequeoSaldo(tblCreditos.getSelectionModel().getSelectedItem().getId());
+
+
+
 
                     String tasa = creditoSeleccionado.getTasa() + "%";
                     String monto = formatoMXN.format(creditoSeleccionado.getMonto());
 
                     Map<String, Object> parametros = new HashMap<>();
-                    parametros.put("nomSocio", socio.getPrimerNom()
-                            + segundoNom + " "
+                    parametros.put("nomSocio", socio.getNombre()+ " "
                             + socio.getApellidoP() + " "
                             + socio.getApellidoM());
                     parametros.put("numSocio", txtNumSocio.getText());
@@ -402,14 +421,6 @@ public class HistorialController implements Initializable {
                     Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
                     JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, parametros, conn);
 
-//                    File pdfFile = File.createTempFile("historial_", ".pdf");
-//
-//                    JasperExportManager.exportReportToPdfFile(
-//                            jpRepo,
-//                            pdfFile.getAbsolutePath()
-//                    );
-//
-//                    Desktop.getDesktop().open(pdfFile);
 
                     Platform.runLater(() -> {
                         JasperViewer viewer = new JasperViewer(jpRepo, false);

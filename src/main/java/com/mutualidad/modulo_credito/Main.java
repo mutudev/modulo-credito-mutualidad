@@ -1,17 +1,22 @@
 package com.mutualidad.modulo_credito;
 
+import com.mutualidad.modulo_credito.Services.Servicio;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import jfxtras.styles.jmetro.JMetro;
 import jfxtras.styles.jmetro.Style;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
+
+import java.time.LocalDate;
 
 import static javafx.application.Application.launch;
 
@@ -19,6 +24,7 @@ import static javafx.application.Application.launch;
 public class Main extends Application {
 
 		public static ConfigurableApplicationContext context;
+
 
 		public static void main(String[] args) {
 			System.setProperty("java.awt.headless","false");
@@ -33,10 +39,23 @@ public class Main extends Application {
 			// Inicia contexto de Spring
 			context = SpringApplication.run(Main.class);
 
+			Servicio servicio = context.getBean(Servicio.class);
+
+			LocalDate fechaSistema = servicio.traerFechaHoy();
+			LocalDate fechaCompu = LocalDate.now();
+
+//			if (!fechaCompu.isEqual(fechaSistema)) {
+//				Alert alert = new Alert(Alert.AlertType.ERROR);
+//				alert.setTitle("ERROR");
+//				alert.setHeaderText("ERROR AL INICIAR LA APLICACIÓN");
+//				alert.setContentText("LA FECHA DE SU COMPUTADORA NO COINCIDE CON LA FECHA DEL SISTEMA, CORRIJA.");
+//				alert.showAndWait();
+//				System.exit(0);
+//			}
+
 			// Carga FXML con controlador Spring
 			FXMLLoader fxml = new FXMLLoader(getClass().getResource("/com/java/fx/login.fxml"));
 			fxml.setControllerFactory(context::getBean);
-
 
 			// Crea la escena
 			Scene scene = new Scene(fxml.load());

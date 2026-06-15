@@ -11,4 +11,6 @@ public interface TipoCreditoRepository extends JpaRepository<ModelTipoCredito, I
     ModelTipoCredito findByNombre(String nombre);
 
     ModelTipoCredito findById(int Id);
+
+
 }

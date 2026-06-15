@@ -5,20 +5,30 @@ import com.mutualidad.modulo_credito.Main;
 import com.mutualidad.modulo_credito.Models.ModelCredito;
 import com.mutualidad.modulo_credito.Models.ModelEmpresa;
 import com.mutualidad.modulo_credito.Models.ModelSolicitud;
+import com.mutualidad.modulo_credito.Models.ModelTransaccion;
 import com.mutualidad.modulo_credito.Services.Servicio;
 import io.github.cdimascio.dotenv.Dotenv;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
@@ -59,6 +69,7 @@ public class EstadoCuentaController implements Initializable {
 
     @FXML
     private TableColumn<ModelCredito, String> colFolio;
+
     @FXML
     private ImageView imgBusqueda;
 
@@ -234,65 +245,161 @@ public class EstadoCuentaController implements Initializable {
     @FXML
     public void generar() {
 
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.setAlwaysOnTop(true);
+
+        VBox loadingPane = new VBox(20);
+        loadingPane.setAlignment(Pos.CENTER);
+        loadingPane.setPadding(new Insets(30));
+        loadingPane.setStyle("-fx-background-color: white; -fx-border-color: #185754; -fx-border-width: 2;");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(60, 60);
+
+        Label loadingLabel = new Label("Generando reporte...");
+        loadingLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        loadingLabel.setTextFill(Color.web("#39577c"));
+
+        loadingPane.getChildren().addAll(progressIndicator, loadingLabel);
+
+        Scene loadingScene = new Scene(loadingPane, 300, 150);
+        loadingStage.setScene(loadingScene);
+        loadingStage.centerOnScreen();
+
 
         String nomEmpresa = servicio.obtenerEmpresaXNombre(cmbEmpresa.getSelectionModel().getSelectedItem().toString()).getNombre();
 
         if(cmbOpcion.getSelectionModel().getSelectedItem().toString().equals("MOVIMIENTOS")){
 
-            int numero = Integer.parseInt(txtSocio.getText());
-            Map pars = new HashMap<>();
-            pars.put("numSocio",txtSocio.getText().toString());
-            pars.put("nomSocio",txtNombre.getText().toString());
-            pars.put("saldoAhorro",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo()));
-            pars.put("saldoCongelado",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo_congelado()));
-            pars.put("saldoTotal",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo_congelado() + servicio.traerAhorro(numero).getSaldo()));
-            pars.put("fechaImp",formatoFecha.format(LocalDate.now()));
+            //Validar si tiene algún registro, sino, cortar
+            List<Integer> ids = List.of(1, 4, 5, 10, 11, 12, 13);
+            List<ModelTransaccion> transacciones = servicio.traerTransaccionesPorTipoOperacion(Integer.parseInt(txtSocio.getText().trim()), true, ids);
+            if (transacciones.size() == 0) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("ERROR");
+                alert.setHeaderText("ADVERTENCIA DE REPORTE");
+                alert.setContentText("EL SOCIO NO TIENE OPERACIONES ACTIVAS RELACIONADAS AL AHORRO.");
+                alert.showAndWait();
+                return;
+            }
+
 
             try {
-                InputStream isRepo = getClass().getResourceAsStream("/Reports/movimientos_ahorro.jasper");
-                JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-                Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
-                JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
-                JasperViewer viewer = new JasperViewer(jpRepo, false);
-                viewer.setSize(800, 600);
-                viewer.setAlwaysOnTop(true);
-                viewer.setLocationRelativeTo(null);
-                viewer.setTitle("PLAN DE PAGOS");
-                viewer.setVisible(true);
+                Task<Void> task = new Task<>() {
+                    @Override
+                    protected Void call() {
+                        try {
 
-            }catch (Exception e) {
+                            int numero = Integer.parseInt(txtSocio.getText());
+                            Map pars = new HashMap<>();
+                            pars.put("numSocio",txtSocio.getText().toString());
+                            pars.put("nomSocio",txtNombre.getText().toString());
+                            pars.put("saldoAhorro",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo()));
+                            pars.put("saldoCongelado",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo_congelado()));
+                            pars.put("saldoTotal",formatoMoneda.format(servicio.traerAhorro(numero).getSaldo_congelado() + servicio.traerAhorro(numero).getSaldo()));
+                            pars.put("fechaImp",formatoFecha.format(servicio.traerFechaHoy()));
+
+                            InputStream isRepo = getClass().getResourceAsStream("/Reports/movimientos_ahorro.jasper");
+                            JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                            Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
+                            JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
+
+
+                            Platform.runLater(() -> {
+                                JasperViewer viewer = new JasperViewer(jpRepo, false);
+                                viewer.setSize(800, 600);
+                                viewer.setAlwaysOnTop(true);
+                                viewer.setLocationRelativeTo(null);
+                                viewer.setTitle("MOVIMIENTOS");
+                                viewer.setVisible(true);
+                            });
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Platform.runLater(() -> {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("ERROR");
+                                alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                                alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                                alert.showAndWait();
+                            });
+                        }
+                        return null;
+                    }
+                };
+
+                task.setOnSucceeded(e -> loadingStage.close());
+                task.setOnFailed(e -> loadingStage.close());
+
+                loadingStage.show();
+                new Thread(task).start();
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
 
-        }else{
+
+
+
+
+        } else {
             int index = tblCreditos.getSelectionModel().getSelectedIndex();
             if(index >= 0){
 
-                Map pars = new HashMap<>();
-                pars.put("numSocio",txtSocio.getText().toString());
-                pars.put("monto",formatoMoneda.format(tblCreditos.getSelectionModel().getSelectedItem().getMonto()));
-                pars.put("tasa",formatoPorcentaje.format(tblCreditos.getSelectionModel().getSelectedItem().getTasa()));
-                pars.put("cuotas",(String.valueOf(tblCreditos.getSelectionModel().getSelectedItem().getPlazo())));
-                pars.put("empresa",nomEmpresa);
-                pars.put("nomSocio",txtNombre.getText().toString());
-                pars.put("fechaImpr",formatoFecha.format(LocalDate.now()));
-                pars.put("folio",String.valueOf(tblCreditos.getSelectionModel().getSelectedItem().getId()));
-
 
                 try {
-                    InputStream isRepo = getClass().getResourceAsStream("/Reports/estado_cuenta.jasper");
-                    JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
-                    Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
-                    JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
-                    JasperViewer viewer = new JasperViewer(jpRepo, false);
-                    viewer.setSize(800, 600);
-                    viewer.setAlwaysOnTop(true);
-                    viewer.setLocationRelativeTo(null);
-                    viewer.setTitle("PLAN DE PAGOS");
-                    viewer.setVisible(true);
+                    Task<Void> task = new Task<>() {
+                        @Override
+                        protected Void call() {
+                            try {
+                                Map pars = new HashMap<>();
+                                pars.put("numSocio",txtSocio.getText().toString());
+                                pars.put("monto",formatoMoneda.format(tblCreditos.getSelectionModel().getSelectedItem().getMonto()));
+                                pars.put("tasa",formatoPorcentaje.format(tblCreditos.getSelectionModel().getSelectedItem().getTasa()));
+                                pars.put("cuotas",(String.valueOf(tblCreditos.getSelectionModel().getSelectedItem().getPlazo())));
+                                pars.put("empresa",nomEmpresa);
+                                pars.put("nomSocio",txtNombre.getText().toString());
+                                pars.put("fechaImpr",formatoFecha.format(servicio.traerFechaHoy()));
+                                pars.put("folio",String.valueOf(tblCreditos.getSelectionModel().getSelectedItem().getId()));
 
-                }catch (Exception e) {
+                                InputStream isRepo = getClass().getResourceAsStream("/Reports/estado_cuenta.jasper");
+                                JasperReport jrRepo = (JasperReport) JRLoader.loadObject(isRepo);
+                                Connection conn = DriverManager.getConnection(dotenv.get("DATABASE_URL"), dotenv.get("DATABASE_USERNAME"), dotenv.get("DATABASE_PASSWORD"));
+                                JasperPrint jpRepo = JasperFillManager.fillReport(jrRepo, pars, conn);
+
+                                Platform.runLater(() -> {
+                                    JasperViewer viewer = new JasperViewer(jpRepo, false);
+                                    viewer.setSize(800, 600);
+                                    viewer.setAlwaysOnTop(true);
+                                    viewer.setLocationRelativeTo(null);
+                                    viewer.setTitle("ESTADO DE CUENTA");
+                                    viewer.setVisible(true);
+                                });
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Platform.runLater(() -> {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setTitle("ERROR");
+                                    alert.setHeaderText("ERROR AL GENERAR EL REPORTE");
+                                    alert.setContentText("OCURRIÓ UN ERROR: " + e.getMessage());
+                                    alert.showAndWait();
+                                });
+                            }
+                            return null;
+                        }
+                    };
+
+                    task.setOnSucceeded(e -> loadingStage.close());
+                    task.setOnFailed(e -> loadingStage.close());
+
+                    loadingStage.show();
+                    new Thread(task).start();
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 

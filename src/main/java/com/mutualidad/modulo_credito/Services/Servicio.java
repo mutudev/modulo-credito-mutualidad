@@ -39,14 +39,27 @@ public class Servicio {
     @Autowired
     private AhorroRepository repoAhorro;
 
+    @Autowired
+    private ConfiguracionRepository repoConf;
+
+    @Autowired
+    private TransaccionRepository repoTransaccion;
 
     @PersistenceContext
     private EntityManager entityManager;
 
 
     @Transactional
-    public HashMap validarLogin(String usuario, String password, String resultado, int rol) {
-        return repoUsuario.pa_validarLogin(usuario, password, resultado, rol);
+    public HashMap validarLogin(String usuario, String password, String resultado, int rol, int cajero) {
+        return repoUsuario.pa_validarLogin(usuario, password, resultado, rol, cajero);
+    }
+
+    public List<Object[]> traerModulos(int usuarioID) {
+        return repoUsuario.traerModulos(usuarioID);
+    }
+
+    public ModelUsuario traerUsuario(String usuario) {
+        return repoUsuario.findByUsuario(usuario);
     }
 
 
@@ -221,6 +234,7 @@ public class Servicio {
         return repoTipoCredito.findById(id);
     }
 
+
     public List<ModelCredito> encontrarCreditosConSocio(int socio) {
         return repoCredito.findBySocio(socio);
     }
@@ -254,10 +268,13 @@ public class Servicio {
         return repoCredito.findBySocioAndEmpresaAndStatus(socio, empresa, status);
     }
 
-    public double chequeoSaldo( int numCredito) {
+    public Double chequeoSaldo( int numCredito) {
         return repoCredito.chequeoSaldo(numCredito);
     }
 
+    public List<ModelTransaccion> traerTransaccionesPorTipoOperacion(int socioId, boolean status, List<Integer> operacionIds) {
+        return repoTransaccion.findBySocioIdAndStatusAndOperacionIdIn(socioId, status, operacionIds);
+    }
 
 
     public  ModelEmpresa obtenerEmpresaXNombre( String nombre){
@@ -287,6 +304,7 @@ public class Servicio {
     public List<Object[]> traerTasas() {
         return repoSocio.traerTasas();
     }
+
     public Object[] traerInfoSocio(int numSocio) {
         return repoSocio.traerInfoSocio(numSocio);
     }
@@ -356,6 +374,14 @@ public class Servicio {
 
     public ModelTipoCredito traerTipoCredito(String nombre) {
         return repoTipoCredito.findByNombre(nombre);
+    }
+
+    public String obtenerApoderadoLegal() {
+        return repoConf.findById(1).get().getApoderadoLegal();
+    }
+
+    public LocalDate traerFechaHoy() {
+        return repoConf.findById(1).get().getFechaSistema();
     }
 
 

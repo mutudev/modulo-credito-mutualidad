@@ -12,9 +12,10 @@ import lombok.Data;
         resultClasses = ModelUsuario.class,
         parameters = {
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "Usuario", type = String.class),
-                @StoredProcedureParameter(mode = ParameterMode.IN, name = "Pass", type = String.class),
+                @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Pass", type = String.class),
                 @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Resultado", type = String.class),
-                @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Rol", type = Integer.class)
+                @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Rol", type = Integer.class),
+                @StoredProcedureParameter(mode = ParameterMode.OUT, name = "Cajero", type = Integer.class)
         })
 public class ModelUsuario {
 
@@ -31,5 +32,8 @@ public class ModelUsuario {
 
     @Column(name = "ROL_ID")
     private int rol;
+
+    @Column(name = "CAJERO")
+    private int cajero;
 
 }

@@ -53,6 +53,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Component
@@ -214,6 +215,8 @@ public class ReimpresionContratosController implements Initializable {
         ObservableList<ModelCredito> data = null;
 
         int numSocio = Integer.parseInt(txtNumSocio.getText().trim());
+
+
         txtNumSocio.setEditable(false);
         imgBusqueda.setVisible(false);
         btnBuscar.setDisable(true);
@@ -224,6 +227,19 @@ public class ReimpresionContratosController implements Initializable {
             ModelEmpresa empresa = servicio.obtenerEmpresaXNombre(cmbEmpresa.getSelectionModel().getSelectedItem().toString());
             String codigo = empresa.getCodigo();
             creditos = servicio.obtenerParaReimpresion(numSocio, codigo);
+            if(creditos.size() == 0){
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("SIN RESULTADOS");
+                alert.setHeaderText("NO SE ENCONTRÓ NINGÚN CRÉDITO");
+                alert.setContentText("NO EXISTEN CRÉDITOS CON DICHO FOLIO");
+                alert.showAndWait();
+                txtNumSocio.setEditable(true);
+                btnBuscar.setDisable(false);
+                limpiarDatos();
+                return;
+
+
+            }
         } else {
             ModelCredito creditoSimple = servicio.encontrarCredito(numSocio);
             if (creditoSimple != null) {
@@ -338,7 +354,7 @@ public class ReimpresionContratosController implements Initializable {
                 try {
 
                     String dineroLetras = converter.asWords(BigDecimal.valueOf(credito.getMonto()));
-                    LocalDate hoy = LocalDate.now();
+                    LocalDate hoy = servicio.traerFechaHoy();
                     int dia = hoy.getDayOfMonth();
                     String pluralDia = (dia == 1) ? "día" : "días";
                     String mes = hoy.getMonth()
@@ -353,7 +369,7 @@ public class ReimpresionContratosController implements Initializable {
                     );
 
                     ModelSocio socio = servicio.traerSocioXNumero(credito.getSocio());
-                    String nombreSocio = socio.getPrimerNom() + " " + socio.getSegundoNom() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
+                    String nombreSocio =socio.getNombre() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
 
                     Map pars = new HashMap<>();
                     pars.put("folio", String.valueOf(credito.getId()));
@@ -375,7 +391,7 @@ public class ReimpresionContratosController implements Initializable {
                                     " pagaderos precisamente en la Fecha de Vencimiento.");
 
                     pars.put("suscrito", suscrito);
-                    pars.put("nombreDeudor", "Nombre: " + nombreSocio +"\nDirección: CALLE " + socio.getCalle() + " " + socio.getCruzamiento() + " UMÁN, YUCATÁN.");
+                    pars.put("nombreDeudor", "Nombre: " + nombreSocio +"\nDirección: " + socio.getDireccion() + " UMÁN, YUCATÁN.");
                     pars.put("mostrarLinea0", true);
 
                     ModelSolicitud solicitud = servicio.obtenerSoliXId(credito.getSolicitud_id());
@@ -410,7 +426,8 @@ public class ReimpresionContratosController implements Initializable {
 
                             String nombreAval = aval[2] != null ? aval[2].toString() : "";
                             String direccionAvalEnviar = "";
-
+                            String municipioSocioAval = "";
+                            String estadioSocioAval = "";
                             Integer numSocio = aval[1] != null ? Integer.valueOf(aval[1].toString()) : null;
 
                             if (numSocio == null || numSocio == 0) {
@@ -419,16 +436,21 @@ public class ReimpresionContratosController implements Initializable {
                                 List<Object[]> socioParaDireccion = servicio.traerDetalleSocio(numSocio);
                                 if (!socioParaDireccion.isEmpty()) {
                                     Object[] fila = socioParaDireccion.get(0);
-                                    direccionAvalEnviar = fila[5] != null
-                                            ? fila[5].toString().toUpperCase()
+                                    direccionAvalEnviar = fila[2] != null
+                                            ? fila[2].toString().toUpperCase()
                                             : "";
+
+                                    municipioSocioAval = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                                    estadioSocioAval = fila[16] != null ? fila[16].toString().toUpperCase() : "";
                                 }
                             }
 
                             pars.put("avalTitulo" + idx, "Aval:");
                             pars.put(
                                     "nombreAval" + idx,
-                                    "Nombre: " + nombreAval + "\nDirección: CALLE " + direccionAvalEnviar
+                                    "Nombre: " + nombreAval + "\nDirección: " + direccionAvalEnviar + " "
+                                            + municipioSocioAval + " "+ estadioSocioAval
+
                             );
                             pars.put("firmaAval" + idx, "FIRMA");
                             pars.put("mostrarLinea" + idx, true);
@@ -478,7 +500,7 @@ public class ReimpresionContratosController implements Initializable {
 
         //Obtener las cosas del crédito
         int indexSeleccionado = tblCreditos.getSelectionModel().getSelectedIndex();
-        ModelCredito primeraFila = (ModelCredito) tblCreditos.getItems().get(indexSeleccionado);
+        ModelCredito primeraFila = tblCreditos.getItems().get(indexSeleccionado);
         ModelCredito credito = servicio.encontrarCredito(primeraFila.getId());
 
         BigDecimal monto = BigDecimal.valueOf(
@@ -489,7 +511,6 @@ public class ReimpresionContratosController implements Initializable {
 
         BigDecimal tasa = credito.getTasa().divide(BigDecimal.valueOf(100.0));
 
-
         BigDecimal iva = BigDecimal.valueOf(credito.getIva()).divide(BigDecimal.valueOf(100.0));
 
         BigDecimal capitalMensual = monto
@@ -499,12 +520,9 @@ public class ReimpresionContratosController implements Initializable {
                 .subtract(capitalMensual.multiply(BigDecimal.valueOf(plazo - 1)))
                 .setScale(2, RoundingMode.HALF_UP);
 
-
-
         LocalDate fechaBase = credito.getFd();
         int diaOriginal = fechaBase.getDayOfMonth();
-
-        boolean huboAjusteAnterior = false;
+        LocalDate fechaPagoAnterior = null;
 
         int numCuota = 1;
         int i = plazo;
@@ -512,8 +530,6 @@ public class ReimpresionContratosController implements Initializable {
         BigDecimal saldo = monto;
 
         while (i != 0) {
-
-            boolean ajusteDomingo = false;
 
             LocalDate fechaTentativa = fechaBase.plusMonths(1);
             LocalDate fechaPago;
@@ -524,27 +540,18 @@ public class ReimpresionContratosController implements Initializable {
                     ? fechaTentativa.withDayOfMonth(ultimoDiaMes)
                     : fechaTentativa.withDayOfMonth(diaOriginal);
 
-            int mesPago = fechaPago.getMonthValue();
-            int anioPago = fechaPago.getYear();
+            // Guardar fecha natural ANTES del ajuste de domingo
+            LocalDate fechaNatural = fechaPago;
 
-            int dias = (mesPago == 1)
-                    ? YearMonth.of(anioPago - 1, 12).lengthOfMonth()
-                    : YearMonth.of(anioPago, mesPago - 1).lengthOfMonth();
-
-            if (huboAjusteAnterior) {
-                dias--;
-                huboAjusteAnterior = false;
-            }
-
+            // Ajuste si cae en domingo
             if (fechaPago.getDayOfWeek() == DayOfWeek.SUNDAY) {
                 fechaPago = fechaPago.plusDays(1);
-                ajusteDomingo = true;
-                huboAjusteAnterior = true;
             }
 
-            if (ajusteDomingo) {
-                dias++;
-            }
+            // Días: desde fecha_base en cuota 1, desde fecha_pago anterior en las demás
+            long dias = (numCuota == 1)
+                    ? ChronoUnit.DAYS.between(fechaBase, fechaPago)
+                    : ChronoUnit.DAYS.between(fechaPagoAnterior, fechaPago);
 
             // ===== INTERÉS =====
             BigDecimal interes = tasa
@@ -567,11 +574,12 @@ public class ReimpresionContratosController implements Initializable {
                     .add(ivaInteres);
 
             saldo = saldo.subtract(capital);
+
             String fechaFormateada = fechaPago.getDayOfMonth() + "/" + fechaPago.getMonthValue() + "/" + fechaPago.getYear();
 
             Map<String, String> fila = Map.of(
                     "cuota", String.valueOf(numCuota),
-                    "fecha", fechaFormateada.toString(),
+                    "fecha", fechaFormateada,
                     "capital", formatoMXN.format(capital),
                     "intereses", formatoMXN.format(interes),
                     "iva", formatoMXN.format(ivaInteres),
@@ -581,7 +589,9 @@ public class ReimpresionContratosController implements Initializable {
 
             tblProyeccion.getItems().add(fila);
 
-            fechaBase = fechaPago;
+            // Base avanza con fecha NATURAL para anclar bien el día del siguiente mes
+            fechaBase = fechaNatural;
+            fechaPagoAnterior = fechaPago;
             numCuota++;
             i--;
         }
@@ -638,7 +648,7 @@ public class ReimpresionContratosController implements Initializable {
                     String plazo = String.valueOf(credito.getPlazo()) + " Meses";
                     String numeroSocio = String.valueOf(credito.getSocio());
                     ModelSocio socio = servicio.traerSocioXNumero(credito.getSocio());
-                    String nombre = socio.getPrimerNom() + " " + socio.getSegundoNom() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
+                    String nombre = socio.getNombre() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
                     String tipo = servicio.encontrarTipoCreditoConId(credito.getTipo_credito()).getNombre();
                     String empresa = servicio.traerEmpresa(credito.getEmpresa()).getNombre();
 
@@ -670,7 +680,7 @@ public class ReimpresionContratosController implements Initializable {
 
                     JRMapCollectionDataSource dataSource = new JRMapCollectionDataSource(datosTabla);
 
-                    LocalDate fecha = LocalDate.now();
+                    LocalDate fecha = servicio.traerFechaHoy();
                     Map pars = new HashMap<>();
                     pars.put("CreditoID", credito.getId());
                     pars.put("nombreSocio", nombre);
@@ -782,12 +792,12 @@ public class ReimpresionContratosController implements Initializable {
                     String firmas = "";
 
                     //Obtener a carli
-                    String apoderado = dotenv.get("APODERADO");
+                    String apoderado = servicio.obtenerApoderadoLegal();
                     String apoderadoAbreviado = dotenv.get("APODERADO_ABREVIADO");
 
                     String empresaEmisoraCompleto = servicio.traerEmpresa(credito.getEmpresa()).getRazonSocial();
                     String abreviaturas = servicio.traerEmpresa(credito.getEmpresa()).getNombre();
-                    LocalDate fecha = LocalDate.now();
+                    LocalDate fecha = servicio.traerFechaHoy();
                     int dia = fecha.getDayOfMonth();
 
                     String mes = fecha.getMonth()
@@ -859,7 +869,7 @@ public class ReimpresionContratosController implements Initializable {
                             "<br/><br/><br/>" +
 
                             "<center>_____________________________<br/>" +
-                            "<b>"+ dotenv.get("APODERADO") + "</b></center>" +
+                            "<b>"+ apoderado + "</b></center>" +
 
                             "<br/><br/>";
 
@@ -891,24 +901,27 @@ public class ReimpresionContratosController implements Initializable {
                     String trabajoPrestamista = "";
                     String estadoCivilPrestamista = "";
                     String soloColoniaPrestamista = "";
+                    String municipioSocioPrestamista = "";
+                    String estadoSocioPrestamista = "";
 
                     List<Object[]> socioPrestamista = servicio.traerDetalleSocio(credito.getSocio());
                     if (!socioPrestamista.isEmpty()) {
                         Object[] fila = socioPrestamista.get(0);
-                        direccionSocioPrestamista = fila[5] != null
-                                ? fila[5].toString().toUpperCase()
+                        direccionSocioPrestamista = fila[2] != null
+                                ? fila[2].toString().toUpperCase()
                                 : "";
-                        trabajoPrestamista = fila[10] != null ? fila[10].toString().toUpperCase() : "";
-                        estadoCivilPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
-                        soloColoniaPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                        trabajoPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
+                        estadoCivilPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                        municipioSocioPrestamista = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                        estadoSocioPrestamista = fila[16] != null ? fila[16].toString().toUpperCase() : "";
                     }
 
                     ModelSocio socio = servicio.traerSocioXNumero(credito.getSocio());
-                    String nombreSocio = socio.getPrimerNom() + " " + socio.getSegundoNom() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
+                    String nombreSocio = socio.getNombre() + " " + socio.getApellidoP() + " " + socio.getApellidoM();
                     String prestamistaParrafo = "<b>2.</b> "+ nombreSocio + ", manifiesta ser <b>" + estadoCivilPrestamista + "</b>, CON OFICIO " +
                             "<b>" + trabajoPrestamista + "</b>, continúa declarando tener como domicilio el predio ubicado " +
-                            "en la calle "+ direccionSocioPrestamista +", de la Col. "+ soloColoniaPrestamista  +", " +
-                            "en la ciudad de UMAN, YUCATAN, México.";
+                            "en la: "+ direccionSocioPrestamista + ", " +
+                            "en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO.";
 
                     ModelSolicitud solicitud = servicio.obtenerSoliXId(credito.getSolicitud_id());
 
@@ -955,11 +968,11 @@ public class ReimpresionContratosController implements Initializable {
                                 if (i == numAvales - 1) {
                                     avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
                                             "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
-                                            "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.";
+                                            "en la " + direccionAval;
                                 } else {
                                     avalesDetalle = avalesDetalle +  "<b>" + (i + 3) + ".</b> " + nombreAval + ", manifiesta ser <b>" + parentescoAval + "</b>, DEL PRESTAMISTA " +
                                             "<b></b>, continúa declarando tener como domicilio el predio ubicado " +
-                                            "en la calle " + direccionAval + ", en la ciudad de UMAN, YUCATAN, México.<br/><br/>";
+                                            "en la " + direccionAval + "<br/><br/>";
                                 }
 
 
@@ -969,28 +982,30 @@ public class ReimpresionContratosController implements Initializable {
                                 String direccionAvalPrestamista = "";
                                 String trabajoAvalPrestamista = "";
                                 String estadoCivilAvalPrestamista = "";
-                                String soloColoniaAvalPrestamista = "";
+                                String municipioAvalPrestamista = "";
+                                String estadoAvalPrestamista = "";
                                 List<Object[]> avalPrestamista = servicio.traerDetalleSocio(numSocioAVal);
                                 if (!avalPrestamista.isEmpty()) {
                                     Object[] fila = avalPrestamista.get(0);
-                                    direccionAvalPrestamista = fila[5] != null
-                                            ? fila[5].toString().toUpperCase()
+                                    direccionAvalPrestamista = fila[2] != null
+                                            ? fila[2].toString().toUpperCase()
                                             : "";
-                                    trabajoAvalPrestamista = fila[10] != null ? fila[10].toString().toUpperCase() : "";
-                                    estadoCivilAvalPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
-                                    soloColoniaAvalPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                                    trabajoAvalPrestamista = fila[7] != null ? fila[7].toString().toUpperCase() : "";
+                                    estadoCivilAvalPrestamista = fila[4] != null ? fila[4].toString().toUpperCase() : "";
+                                    municipioAvalPrestamista = fila[15] != null ? fila[15].toString().toUpperCase() : "";
+                                    estadoAvalPrestamista = fila[16] != null ? fila[16].toString().toUpperCase() : "";
                                 }
 
                                 if (i == numAvales - 1) {
                                     avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
                                             "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                            "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
-                                            "en la ciudad de UMAN, YUCATAN, México.";
+                                            "en la: "+ direccionAvalPrestamista + ", " +
+                                            "en la ciudad de " + municipioAvalPrestamista.toUpperCase() + ", " + estadoAvalPrestamista.toUpperCase() + ", MÉXICO.";
                                 } else {
                                     avalesDetalle = avalesDetalle +  "<b>"+ (i + 3) + ".</b> "+ nombreAval  +", manifiesta ser <b>"+ estadoCivilAvalPrestamista + "</b>, CON OFICIO " +
                                             "<b>"+ trabajoAvalPrestamista+"</b>, continúa declarando tener como domicilio el predio ubicado " +
-                                            "en la calle "+ direccionAvalPrestamista +", de la Col. "+ soloColoniaAvalPrestamista  +", " +
-                                            "en la ciudad de UMAN, YUCATAN, México." + "<br/><br/>";
+                                            "en la: "+ direccionAvalPrestamista + ", " +
+                                            "en la ciudad de " + municipioAvalPrestamista.toUpperCase() + ", " + estadoAvalPrestamista.toUpperCase() + ", MÉXICO." + "<br/><br/>";
                                 }
 
 
@@ -1011,15 +1026,14 @@ public class ReimpresionContratosController implements Initializable {
 
                         clausula4 = "<b>IV.-</b> Finalmente, " + avalesJuntosEncabezado + ", declaran estar de " +
                                 "acuerdo señalando como domicilio en el cual deban recibir todo tipo de notificaciones el " +
-                                "predio ubicado en la calle "+ direccionSocioPrestamista + ", de la Colonia " + soloColoniaPrestamista
-                                + ", en la ciudad de UMAN, YUCATAN, México." +
+                                "predio ubicado en la " + direccionSocioPrestamista
+                                + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
 
                                 "<br/><br/>";
 
                         clausula5 = "<b>V.- </b> En caso de controversia en juicio serán notificadas a todos y cada uno de los " +
-                                "deudores en el domicilio del deudor principal el cual es el predio ubicado en la calle " + direccionSocioPrestamista +
-                                ", de la Colonia "+ soloColoniaPrestamista + ", en la ciudad de " +
-                                "UMAN, YUCATAN, México." +
+                                "deudores en el domicilio del deudor principal el cual es el predio ubicado en la " + direccionSocioPrestamista
+                                + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
 
                                 "<br/><br/>";
 
@@ -1038,15 +1052,14 @@ public class ReimpresionContratosController implements Initializable {
 
                         clausula4 = "<b>IV.-</b> Finalmente, " + nombreSocio + ", declara estar de " +
                                 "acuerdo señalando como domicilio en el cual deba recibir todo tipo de notificaciones el " +
-                                "predio ubicado en la calle "+ direccionSocioPrestamista + ", de la Colonia " + soloColoniaPrestamista
-                                + ", en la ciudad de UMAN, YUCATAN, México." +
+                                "predio ubicado en la " + direccionSocioPrestamista
+                                + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
 
                                 "<br/><br/>";
 
                         clausula5 = "<b>V.- </b> En caso de controversia en juicio será notificado el " +
-                                "deudor en el domicilio del deudor principal el cual es el predio ubicado en la calle " + direccionSocioPrestamista
-                                + ", de la Colonia "+ soloColoniaPrestamista + ", en la ciudad de " +
-                                "UMAN, YUCATAN, México." +
+                                "deudor en el domicilio del deudor principal el cual es el predio ubicado en la " + direccionSocioPrestamista
+                                + ", en la ciudad de " + municipioSocioPrestamista.toUpperCase() + ", " + estadoSocioPrestamista.toUpperCase() + ", MÉXICO." +
 
                                 "<br/><br/>";
 

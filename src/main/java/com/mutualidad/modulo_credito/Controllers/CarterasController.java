@@ -241,7 +241,7 @@ public class CarterasController implements Initializable {
                         empresaEmisora = servicio.obtenerEmpresaXNombre(cmbEmpresas.getSelectionModel().getSelectedItem().toString()).getRazonSocial();
                     }
 
-                    String fechaImp = formatter.format(LocalDate.now());
+                    String fechaImp = formatter.format(servicio.traerFechaHoy());
                     InputStream direccionImg2 = null;
                     if (cmbEmpresas.getSelectionModel().getSelectedItem().toString().equalsIgnoreCase("MUTUALIDAD DOCE DE AGOSTO")) {
                         direccionImg = getClass().getResourceAsStream("/assets/images/logo-mut.png");

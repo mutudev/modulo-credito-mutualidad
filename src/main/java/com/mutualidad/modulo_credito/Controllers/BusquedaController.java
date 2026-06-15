@@ -42,15 +42,15 @@ public class BusquedaController implements Initializable {
   @Autowired
   private Servicio busquedaServicio;
 
-  public SolicitudController solicitudController;
+  public SolicitudController solicitudController = null;
 
-  public ReimpresionContratosController reimpresionContratosController;
+  public ReimpresionContratosController reimpresionContratosController = null;
 
-  public GradualidadController gradualidadController;
+  public GradualidadController gradualidadController = null;
 
-  public EstadoCuentaController estadoCuentaController;
+  public EstadoCuentaController estadoCuentaController = null;
 
-  public HistorialController historialController;
+  public HistorialController historialController = null;
 
   public int ventana;
 
@@ -102,38 +102,22 @@ public class BusquedaController implements Initializable {
   public void setCajeroController(SolicitudController controller, int ventana) {
     this.solicitudController = controller;
     this.ventana = ventana;
-    this.reimpresionContratosController = null;
-    this.gradualidadController = null;
-    this.estadoCuentaController = null;
   }
 
   public void setReimpresionController(ReimpresionContratosController controller) {
     this.reimpresionContratosController = controller;
-    this.solicitudController = null;
-    this.gradualidadController = null;
-    this.estadoCuentaController = null;
   }
 
   public void setGradualidadController(GradualidadController controller) {
     this.gradualidadController = controller;
-    this.solicitudController = null;
-    this.reimpresionContratosController = null;
-    this.estadoCuentaController = null;
   }
 
   public void setEstadoCuentaController(EstadoCuentaController controller) {
     this.estadoCuentaController = controller;
-    this.gradualidadController = null;
-    this.reimpresionContratosController = null;
-    this.solicitudController = null;
   }
 
   public void setHistorialController(HistorialController controller) {
     this.historialController = controller;
-    this.reimpresionContratosController = null;
-    this.gradualidadController = null;
-    this.estadoCuentaController = null;
-    this.solicitudController = null;
   }
 
 
